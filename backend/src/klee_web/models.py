@@ -42,3 +42,7 @@ class Job(BaseModel):
     status: JobStatus = JobStatus.pending
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     result: JobResult | None = None
+
+
+class JobCreated(BaseModel):
+    job_id: UUID

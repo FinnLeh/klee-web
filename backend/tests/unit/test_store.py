@@ -3,24 +3,8 @@ from uuid import uuid4
 
 import pytest
 
-from klee_web.jobs.store import InMemoryJobStore, JobNotFound
-from klee_web.models import Job, JobResult, JobStatus, TestCase
-
-
-@pytest.fixture
-def store() -> InMemoryJobStore:
-    return InMemoryJobStore()
-
-
-@pytest.fixture
-def sample_result() -> JobResult:
-    return JobResult(
-        test_cases=[TestCase(name="test1", inputs={"x": "0"})],
-        messages="ok",
-        warnings="",
-        errors=[],
-        stats={"paths": 1, "instructions": 100},
-    )
+from klee_web.jobs.store import JobNotFound
+from klee_web.models import Job, JobStatus
 
 
 async def test_create_then_get_returns_same_job(store):
