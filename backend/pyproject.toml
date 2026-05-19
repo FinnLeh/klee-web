@@ -1,0 +1,41 @@
+[project]
+name = "klee-web"
+version = "0.1.0"
+description = "Browser-accessible KLEE symbolic execution."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "NCSA"
+authors = [
+    { name = "Software Reliability Group, Imperial College London" },
+]
+dependencies = [
+    "fastapi>=0.110",
+    "pydantic>=2.0",
+    "uvicorn[standard]>=0.30",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "httpx>=0.27",
+    "ruff>=0.5",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/klee_web"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
