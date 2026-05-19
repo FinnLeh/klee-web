@@ -78,5 +78,4 @@ gVisor is selected via Docker runtime flag (`--runtime=runsc`). Zero application
 
 ## References
 
-- Architecture slides at `~/Documents/MSc_Computing/Thesis/`, May 2026
-- Old klee-web at `reference/klee-web-original/` as a counter-example: the original ran a similar three-tier design but accumulated rewrites at each layer over time
+- Old klee-web at `https://github.com/klee/klee-web` as a counter-example: the original ran a similar three-tier design but accumulated rewrites at each layer over time.
