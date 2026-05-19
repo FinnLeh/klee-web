@@ -15,9 +15,9 @@ React + TypeScript single-page app. Editor for C source, submit button, results 
 - `src/api/jobs.ts`: `POST /jobs`, `GET /jobs/{id}` client, polls via React Query
 - `src/types/api.ts`: types generated from the backend OpenAPI spec, committed
 
-## Editor choice (undecided)
+## Editor
 
-Monaco (VS Code's editor) vs CodeMirror 6. Tradeoff is in the architecture slides. Will decide before frontend work starts in earnest.
+Monaco, the editor that powers VS Code. Decided 2026-05-19. CodeMirror 6 was the alternative considered; the tradeoff is recorded in the architecture slides and will be distilled into an ADR when frontend work begins.
 
 ## Why types are generated, not hand-written
 
