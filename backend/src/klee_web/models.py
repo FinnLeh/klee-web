@@ -24,6 +24,7 @@ class JobRequest(BaseModel):
 
 
 class TestCase(BaseModel):
+    __test__ = False  # opt out of pytest collection; this is a domain model, not a test class
     name: str
     inputs: dict[str, str]
 
