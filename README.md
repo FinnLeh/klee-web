@@ -29,9 +29,4 @@ Not yet runnable. Instructions land here as components are wired up.
 
 ## Design
 
-Architecture is documented in two places:
-
-- The architecture slides at `~/Documents/MSc_Computing/Thesis/` (source of truth for design decisions).
-- `docs/adr/` (durable record of decisions inside the repo).
-
-Read the slides first if you're new to the project. ADRs distil the slides into single-decision documents.
+Architecture is documented in `docs/adr/`, one ADR per major decision.

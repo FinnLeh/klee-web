@@ -13,8 +13,6 @@ Per-job containers give cgroup isolation, easy resource accounting (memory, CPU,
 
 ## Known working invocation (reference)
 
-From a March experiment, captured in `CLAUDE.md` at the Thesis root. Summary:
-
 - `clang -I /home/klee/klee_src/include -emit-llvm -c -g -O0 input.c -o code.bc`
 - `klee --libc=uclibc --posix-runtime --max-time=60 --max-memory=512 --output-dir=/tmp/klee-out code.bc`
 - Output dir contains `messages.txt`, `warnings.txt`, `*.ktest`, `*.err`, `run.stats` (SQLite3 in KLEE 3.x).

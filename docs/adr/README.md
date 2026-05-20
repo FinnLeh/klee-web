@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-One sequentially-numbered markdown per major design decision. The slides (`~/Documents/MSc_Computing/Thesis/`, source of truth) are distilled here into single-decision documents that live with the code.
+One sequentially-numbered markdown per major design decision. ADRs are the durable record of decisions that live with the code.
 
 ## Format
 
