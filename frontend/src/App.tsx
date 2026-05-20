@@ -9,6 +9,9 @@ function App() {
 
   return (
     <>
+      <div className="bg-blue-600 text-white p-4 mb-4 rounded">
+        Tailwind v4 is wired up.
+      </div>
       <section id="center">
         <div className="hero">
           <img src={heroImg} className="base" width="170" height="179" alt="" />
