@@ -25,7 +25,33 @@ klee-web/
 
 ## Running locally
 
-Not yet runnable. Instructions land here as components are wired up.
+The backend and frontend dev servers run independently. End-to-end execution
+depends on the runner, which is still a stub: `POST /jobs` returns 500
+(`NotImplementedError`) until the real `DockerKleeRunner` lands.
+
+The frontend currently renders the Vite scaffold's placeholder, not a KLEE Web
+UI. The submit-and-poll components arrive in the next frontend session.
+
+### Backend
+
+```bash
+cd backend
+uv sync
+uv run uvicorn klee_web.main:app --port 8000
+```
+
+OpenAPI surface at <http://localhost:8000/docs>. Use the Swagger UI's
+"Try it out" on `POST /jobs` to confirm the 500.
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Vite dev server at <http://localhost:5173>.
 
 ## Design
 

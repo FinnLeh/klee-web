@@ -37,3 +37,9 @@ Don't write ADRs for:
 | # | Title | Status |
 |---|-------|--------|
 | 0001 | Stage-based additive architecture | Accepted |
+| 0002 | JobStore protocol surface | Accepted |
+| 0003 | Src-layout for the backend Python package | Accepted |
+| 0004 | Monaco for the in-browser editor | Accepted |
+| 0005 | Narrow KleeFlags schema for Stage 1 | Accepted |
+| 0006 | Frontend tooling stack | Accepted |
+| 0007 | POST /jobs returns JobCreated, not full Job | Accepted |
