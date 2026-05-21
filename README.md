@@ -25,12 +25,21 @@ klee-web/
 
 ## Running locally
 
-The backend and frontend dev servers run independently. End-to-end execution
-depends on the runner, which is still a stub: `POST /jobs` returns 500
-(`NotImplementedError`) until the real `DockerKleeRunner` lands.
+The backend, frontend, and runner pieces run independently. End-to-end
+execution requires Docker plus the locally-built runner image.
 
 The frontend currently renders the Vite scaffold's placeholder, not a KLEE Web
-UI. The submit-and-poll components arrive in the next frontend session.
+UI. The submit-and-poll components arrive in the next frontend session, so
+end-to-end traffic is exercised through the backend's Swagger UI for now.
+
+### Runner image
+
+Build the runner image once before booting the backend, and rebuild after any
+change to `runner/Dockerfile` or `runner/entrypoint.py`:
+
+```bash
+docker build -t klee-web-runner ./runner
+```
 
 ### Backend
 
@@ -40,8 +49,11 @@ uv sync
 uv run uvicorn klee_web.main:app --port 8000
 ```
 
-OpenAPI surface at <http://localhost:8000/docs>. Use the Swagger UI's
-"Try it out" on `POST /jobs` to confirm the 500.
+OpenAPI surface at <http://localhost:8000/docs>. `POST /jobs` compiles and
+runs the submitted C source via the runner image and returns a `job_id`;
+`GET /jobs/{id}` returns the parsed result with test cases, errors, and stats.
+The backend assumes the `klee-web-runner` image is built; without it, `POST
+/jobs` returns 500 with a runner error.
 
 ### Frontend
 
