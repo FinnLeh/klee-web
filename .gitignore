@@ -50,6 +50,9 @@ klee-out-*/
 *.bc
 *.ktest
 
+# but keep captured KLEE output fixtures used by parser tests
+!backend/tests/fixtures/**/*.ktest
+
 # Coverage and test artifacts
 coverage/
 *.lcov
