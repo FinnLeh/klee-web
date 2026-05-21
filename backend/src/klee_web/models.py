@@ -27,13 +27,13 @@ class TestCase(BaseModel):
     __test__ = False  # opt out of pytest collection; this is a domain model, not a test class
     name: str
     inputs: dict[str, str]
+    error: str | None = None
 
 
 class JobResult(BaseModel):
     test_cases: list[TestCase]
     messages: str
     warnings: str
-    errors: list[str]
     stats: dict[str, int]
     compile_error: str | None = None
 

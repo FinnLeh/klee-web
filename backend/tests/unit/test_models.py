@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import ValidationError
 
-from klee_web.models import Job, JobRequest, JobResult, JobStatus, KleeFlags
+from klee_web.models import Job, JobRequest, JobResult, JobStatus, KleeFlags, TestCase
 
 
 def test_klee_flags_defaults():
@@ -78,7 +78,7 @@ def test_job_status_serialises_as_plain_string():
 
 
 def test_job_result_compile_error_defaults_to_none():
-    result = JobResult(test_cases=[], messages="", warnings="", errors=[], stats={})
+    result = JobResult(test_cases=[], messages="", warnings="", stats={})
     assert result.compile_error is None
 
 
@@ -87,9 +87,18 @@ def test_job_result_with_compile_error_set():
         test_cases=[],
         messages="",
         warnings="",
-        errors=[],
         stats={},
         compile_error="input.c:3:5: error: expected ';' after expression",
     )
     assert result.compile_error == "input.c:3:5: error: expected ';' after expression"
     assert result.test_cases == []
+
+
+def test_test_case_error_defaults_to_none():
+    tc = TestCase(name="test000001", inputs={"a": "0"})
+    assert tc.error is None
+
+
+def test_test_case_with_error_set():
+    tc = TestCase(name="test000001", inputs={"a": "0"}, error="divide by zero at input.c:11")
+    assert tc.error == "divide by zero at input.c:11"

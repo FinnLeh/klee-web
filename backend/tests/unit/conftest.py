@@ -15,7 +15,6 @@ def sample_result() -> JobResult:
         test_cases=[TestCase(name="test1", inputs={"x": "0"})],
         messages="ok",
         warnings="",
-        errors=[],
         stats={"paths": 1, "instructions": 100},
     )
 
