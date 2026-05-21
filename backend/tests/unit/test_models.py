@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import ValidationError
 
-from klee_web.models import Job, JobRequest, JobStatus, KleeFlags
+from klee_web.models import Job, JobRequest, JobResult, JobStatus, KleeFlags
 
 
 def test_klee_flags_defaults():
@@ -75,3 +75,21 @@ def test_job_status_serialises_as_plain_string():
     job = Job(status=JobStatus.running)
     dumped = job.model_dump(mode="json")
     assert dumped["status"] == "running"
+
+
+def test_job_result_compile_error_defaults_to_none():
+    result = JobResult(test_cases=[], messages="", warnings="", errors=[], stats={})
+    assert result.compile_error is None
+
+
+def test_job_result_with_compile_error_set():
+    result = JobResult(
+        test_cases=[],
+        messages="",
+        warnings="",
+        errors=[],
+        stats={},
+        compile_error="input.c:3:5: error: expected ';' after expression",
+    )
+    assert result.compile_error == "input.c:3:5: error: expected ';' after expression"
+    assert result.test_cases == []

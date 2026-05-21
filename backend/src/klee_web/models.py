@@ -35,6 +35,7 @@ class JobResult(BaseModel):
     warnings: str
     errors: list[str]
     stats: dict[str, int]
+    compile_error: str | None = None
 
 
 class Job(BaseModel):
