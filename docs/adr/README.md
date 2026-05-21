@@ -43,3 +43,5 @@ Don't write ADRs for:
 | 0005 | Narrow KleeFlags schema for Stage 1 | Accepted |
 | 0006 | Frontend tooling stack | Accepted |
 | 0007 | POST /jobs returns JobCreated, not full Job | Accepted |
+| 0008 | KleeRunner protocol surface | Accepted |
+| 0009 | Per-job containers, not a long-lived runner process | Accepted |
