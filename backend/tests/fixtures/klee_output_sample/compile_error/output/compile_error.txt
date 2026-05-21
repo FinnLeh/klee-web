@@ -1,0 +1,4 @@
+/work/input.c:19:5: error: call to undeclared function 'klee_make_symbolic'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    klee_make_symbolic(&a, sizeof(a), "a");
+    ^
+1 error generated.

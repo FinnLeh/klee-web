@@ -1,0 +1,11 @@
+Error: divide by zero
+File: input.c
+Line: 11
+assembly.ll line: 8793
+State: 1
+Stack: 
+	#000014451 in klee_div_zero_check(z=symbolic) at klee_src/runtime/Intrinsic/klee_div_zero_check.c:14
+	#100008793 in __klee_posix_wrapped_main() at input.c:11
+	#200007093 in __user_main(argcPtr=1, argvPtr=135949537247232, envp=135949537247248) at klee_src/runtime/POSIX/klee_init_env.c:244
+	#300000507 in __uClibc_main(main=135934764908544, argc=1, argv=135949537247232, app_init=0, app_fini=0, rtld_fini=0, stack_end=0) at libc/misc/internals/__uClibc_main.c:401
+	#400000675 in main(1, 135949537247232)
