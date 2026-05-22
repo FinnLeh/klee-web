@@ -45,3 +45,4 @@ Don't write ADRs for:
 | 0007 | POST /jobs returns JobCreated, not full Job | Accepted |
 | 0008 | KleeRunner protocol surface | Accepted |
 | 0009 | Per-job containers, not a long-lived runner process | Accepted |
+| 0010 | Frontend data layer (openapi-typescript + openapi-fetch + React Query) | Accepted |

@@ -8,7 +8,7 @@ KLEE today requires users to build LLVM, STP, and a chain of other dependencies 
 
 ## Current stage
 
-**Stage 1: synchronous monolith.** React frontend, FastAPI backend, Docker runner. No queue, no cache. Runs locally with `docker compose up`. Target: end of May 2026.
+**Stage 1: synchronous monolith.** React frontend, FastAPI backend, Docker runner. No queue, no cache. Runs locally via the steps below. Target: end of May 2026.
 
 Stages 2 (Celery + Redis + cache) and 3 (nginx + gVisor + admin UI) follow over the summer.
 
@@ -29,8 +29,10 @@ The backend, frontend, and runner pieces run independently. End-to-end
 execution requires Docker plus the locally-built runner image.
 
 The frontend currently renders the Vite scaffold's placeholder, not a KLEE Web
-UI. The submit-and-poll components arrive in the next frontend session, so
-end-to-end traffic is exercised through the backend's Swagger UI for now.
+UI. The data layer is in place (typed API client, React Query hooks, generated
+types); the visible components and `App.tsx` wire-up arrive in the next
+frontend session. Until then, end-to-end traffic is exercised through the
+backend's Swagger UI.
 
 ### Runner image
 

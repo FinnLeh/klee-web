@@ -2,7 +2,7 @@
 
 FastAPI service. Receives job submissions, runs KLEE through the runner, returns results.
 
-## Stage 1 contents (planned)
+## Stage 1 contents
 
 - `pyproject.toml`: dependencies and tooling config
 - `src/klee_web/main.py`: FastAPI app
@@ -11,6 +11,7 @@ FastAPI service. Receives job submissions, runs KLEE through the runner, returns
 - `src/klee_web/jobs/store.py`: `JobStore` protocol + `InMemoryJobStore`
 - `src/klee_web/jobs/runner.py`: `KleeRunner` protocol + `DockerKleeRunner`
 - `src/klee_web/parsing/klee_output.py`: parse KLEE output dir into a `JobResult`
+- `src/klee_web/parsing/ktest.py`: vendored KLEE ktest reader (NCSA, trimmed to `KTest.fromfile`)
 - `src/klee_web/deps.py`: dependency providers (`get_job_store`, `get_runner`)
 - `tests/unit/`: handler tests, parser tests with golden fixtures
 - `tests/integration/`: end-to-end with real Docker
