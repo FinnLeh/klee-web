@@ -14,7 +14,7 @@ export function Workspace({ topBar, sidebar, main, results, statusBar }: Workspa
   const mainResultsDirection = resultsPosition === "right" ? "flex-row" : "flex-col"
 
   return (
-    <div className="h-screen flex flex-col bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+    <div className="h-screen flex flex-col bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <div className="shrink-0">{topBar}</div>
       <div className="flex-1 min-h-0 flex flex-row">
         {sidebar && <div className="shrink-0">{sidebar}</div>}

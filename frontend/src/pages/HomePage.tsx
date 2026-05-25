@@ -1,3 +1,4 @@
+import { StatusBar } from "../components/StatusBar"
 import { Workspace } from "../components/Workspace"
 
 export function HomePage() {
@@ -14,11 +15,7 @@ export function HomePage() {
           results slot
         </div>
       }
-      statusBar={
-        <div className="p-2 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-xs">
-          status bar
-        </div>
-      }
+      statusBar={<StatusBar source="" />}
     />
   )
 }
