@@ -28,11 +28,11 @@ klee-web/
 The backend, frontend, and runner pieces run independently. End-to-end
 execution requires Docker plus the locally-built runner image.
 
-The frontend currently renders the Vite scaffold's placeholder, not a KLEE Web
-UI. The data layer is in place (typed API client, React Query hooks, generated
-types); the visible components and `App.tsx` wire-up arrive in the next
-frontend session. Until then, end-to-end traffic is exercised through the
-backend's Swagger UI.
+The frontend renders the layout chassis (top bar, editor area, results area,
+status bar) with placeholder slot content. Theme and layout-position settings
+are wired and persist across reloads. The components inside each slot land over
+the next few frontend sessions; until they do, end-to-end traffic against the
+backend is exercised through the Swagger UI.
 
 ### Runner image
 
