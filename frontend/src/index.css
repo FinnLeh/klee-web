@@ -1,3 +1,7 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --klee-accent: #475569;
+}
