@@ -28,11 +28,14 @@ klee-web/
 The backend, frontend, and runner pieces run independently. End-to-end
 execution requires Docker plus the locally-built runner image.
 
-The frontend renders the layout chassis (top bar, editor area, results area,
-status bar) with placeholder slot content. Theme and layout-position settings
-are wired and persist across reloads. The components inside each slot land over
-the next few frontend sessions; until they do, end-to-end traffic against the
-backend is exercised through the Swagger UI.
+The frontend renders the layout chassis. The status bar slot is live: a
+backend-connected indicator that polls `/openapi.json` every 5 seconds, the
+source byte count, and the pinned KLEE version. The other slots (top bar,
+editor, results, flag bar, settings popover) still render placeholder content;
+the remaining components land over the next few frontend sessions. Theme and
+layout-position settings are wired and persist across reloads. End-to-end
+traffic against the backend is exercised through the Swagger UI until the
+editor and run-button slots land.
 
 ### Runner image
 

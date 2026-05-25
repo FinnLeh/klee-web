@@ -11,14 +11,15 @@ React + TypeScript single-page app. Editor for C source, submit button, results 
 - `index.html`: entry HTML
 - `src/main.tsx`: React mount point, wraps `<App />` in `QueryClientProvider`
 - `src/App.tsx`: route index (`SettingsProvider` + `BrowserRouter` + `Route` at `/`)
-- `src/api/client.ts`: typed `apiClient` over openapi-fetch
+- `src/api/client.ts`: typed `apiClient` over openapi-fetch; also exports `BASE_URL` for callers that need the backend origin outside the typed routes (e.g., the status bar pinging `/openapi.json`)
 - `src/api/jobs.ts`: `submitJob`, `getJob`, re-exported schema aliases
 - `src/hooks/useSubmitJob.ts`: React Query mutation over `submitJob`
 - `src/hooks/useJob.ts`: React Query polling query over `getJob`, 1000 ms cadence, stops on terminal status
 - `src/types/api.ts`: types generated from the backend OpenAPI spec, committed
 - `src/context/SettingsContext.tsx`: theme (system/dark/light, default system) and results-position (right/below), localStorage-backed
 - `src/components/Workspace.tsx`: layout chassis with five slot props (`topBar`, `sidebar?`, `main`, `results`, `statusBar`); `resultsPosition` flips main/results between row and column
-- `src/pages/HomePage.tsx`: composes Workspace at route `/` with placeholder slot content; editor, results, top bar, status bar, flag bar, settings popover arrive over the next sessions
+- `src/components/StatusBar.tsx`: bottom strip with backend-connected indicator (polls `/openapi.json` every 5 s via React Query, two-state connected/disconnected derived from `data` + `isError`), source byte count, pinned KLEE version
+- `src/pages/HomePage.tsx`: composes Workspace at route `/`; status bar slot is live, the others (top bar, editor, results, flag bar, settings popover) still render placeholder content until those components land
 
 ## Editor
 
