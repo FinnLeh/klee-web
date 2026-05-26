@@ -1,6 +1,7 @@
 import { useState } from "react"
 import type { KleeFlags } from "../api/jobs"
 import { Editor } from "../components/Editor"
+import { Results } from "../components/Results"
 import { StatusBar } from "../components/StatusBar"
 import { TopBar } from "../components/TopBar"
 import { Workspace } from "../components/Workspace"
@@ -23,6 +24,7 @@ int main() {
 export function HomePage() {
   const [source, setSource] = useState<string>(GET_SIGN_C)
   const [flags, setFlags] = useState<KleeFlags>({ max_time: 60, max_memory: 512 })
+  const [jobId] = useState<string | null>(null)
 
   return (
     <Workspace
@@ -35,11 +37,7 @@ export function HomePage() {
         />
       }
       main={<Editor value={source} onChange={setSource} />}
-      results={
-        <div className="p-4 h-full bg-slate-100 dark:bg-slate-900">
-          results slot
-        </div>
-      }
+      results={<Results jobId={jobId} />}
       statusBar={<StatusBar source={source} />}
     />
   )
