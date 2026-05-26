@@ -55,6 +55,22 @@ async def test_set_result_on_unknown_id_raises_job_not_found(store, sample_resul
         await store.set_result(uuid4(), sample_result)
 
 
+async def test_set_partial_result_writes_result_without_advancing_status(store, sample_result):
+    job = Job()
+    await store.create(job)
+    await store.update_status(job.id, JobStatus.running)
+    await store.set_partial_result(job.id, sample_result)
+    retrieved = await store.get(job.id)
+    assert retrieved is not None
+    assert retrieved.result == sample_result
+    assert retrieved.status == JobStatus.running
+
+
+async def test_set_partial_result_on_unknown_id_raises_job_not_found(store, sample_result):
+    with pytest.raises(JobNotFound):
+        await store.set_partial_result(uuid4(), sample_result)
+
+
 async def test_concurrent_creates_dont_lose_jobs(store):
     jobs = [Job() for _ in range(50)]
     await asyncio.gather(*(store.create(j) for j in jobs))

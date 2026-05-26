@@ -17,9 +17,13 @@ def parse_output_dir(output_dir: Path) -> JobResult:
             compile_error=compile_error_path.read_text(),
         )
 
-    test_cases = [
-        _test_case_from_ktest(p) for p in sorted(output_dir.glob("*.ktest"))
-    ]
+    test_cases: list[TestCase] = []
+    for p in sorted(output_dir.glob("*.ktest")):
+        try:
+            test_cases.append(_test_case_from_ktest(p))
+        except (OSError, ValueError, EOFError, struct.error):
+            # Mid-write ktest; the watcher will see the finished file on a later tick.
+            continue
 
     return JobResult(
         test_cases=test_cases,
@@ -36,15 +40,19 @@ def _read_or_empty(path: Path) -> str:
 def _read_stats(path: Path) -> dict[str, int]:
     if not path.exists():
         return {}
-    con = sqlite3.connect(path)
     try:
-        # run.stats is a time series of snapshots written every --stats-write-interval.
-        # KLEE counters are monotonic, so the last row is the cumulative totals.
-        cur = con.execute("SELECT * FROM stats ORDER BY rowid DESC LIMIT 1;")
-        cols = [str(d[0]) for d in cur.description]
-        row = cur.fetchone()
-    finally:
-        con.close()
+        con = sqlite3.connect(path)
+        try:
+            # run.stats is a time series of snapshots written every --stats-write-interval.
+            # KLEE counters are monotonic, so the last row is the cumulative totals.
+            cur = con.execute("SELECT * FROM stats ORDER BY rowid DESC LIMIT 1;")
+            cols = [str(d[0]) for d in cur.description]
+            row = cur.fetchone()
+        finally:
+            con.close()
+    except sqlite3.Error:
+        # Mid-write or locked DB; next watcher tick will retry.
+        return {}
     if row is None:
         return {}
     return {c: int(v) for c, v in zip(cols, row, strict=True) if v is not None}

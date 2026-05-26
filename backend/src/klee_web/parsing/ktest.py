@@ -15,7 +15,6 @@
 
 import struct
 
-
 version_no = 3
 
 
