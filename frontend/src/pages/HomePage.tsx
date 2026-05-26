@@ -1,4 +1,5 @@
 import { useState } from "react"
+import type { KleeFlags } from "../api/jobs"
 import { Editor } from "../components/Editor"
 import { StatusBar } from "../components/StatusBar"
 import { TopBar } from "../components/TopBar"
@@ -21,10 +22,18 @@ int main() {
 
 export function HomePage() {
   const [source, setSource] = useState<string>(GET_SIGN_C)
+  const [flags, setFlags] = useState<KleeFlags>({ max_time: 60, max_memory: 512 })
 
   return (
     <Workspace
-      topBar={<TopBar onRun={() => {}} onOpenSettings={() => {}} />}
+      topBar={
+        <TopBar
+          flags={flags}
+          onFlagsChange={setFlags}
+          onRun={() => {}}
+          onOpenSettings={() => {}}
+        />
+      }
       main={<Editor value={source} onChange={setSource} />}
       results={
         <div className="p-4 h-full bg-slate-100 dark:bg-slate-900">

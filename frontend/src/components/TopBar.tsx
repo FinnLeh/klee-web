@@ -1,12 +1,20 @@
+import type { KleeFlags } from "../api/jobs"
+import { FlagBar } from "./FlagBar"
+
 type TopBarProps = {
+  flags: KleeFlags
+  onFlagsChange: (next: KleeFlags) => void
   onRun: () => void
   onOpenSettings: () => void
 }
 
-export function TopBar({ onRun, onOpenSettings }: TopBarProps) {
+export function TopBar({ flags, onFlagsChange, onRun, onOpenSettings }: TopBarProps) {
   return (
     <div className="px-3 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 flex items-center justify-between text-slate-900 dark:text-slate-100">
-      <KleeLogo />
+      <div className="flex items-center gap-6">
+        <KleeLogo />
+        <FlagBar flags={flags} onFlagsChange={onFlagsChange} />
+      </div>
       <div className="flex items-center gap-2">
         <button
           type="button"
