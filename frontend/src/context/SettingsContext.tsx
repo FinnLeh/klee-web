@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 
 type Theme = "system" | "dark" | "light"
+type ResolvedTheme = "dark" | "light"
 type ResultsPosition = "right" | "below"
 
 type SettingsValue = {
   theme: Theme
+  resolvedTheme: ResolvedTheme
   resultsPosition: ResultsPosition
   setTheme: (t: Theme) => void
   setResultsPosition: (p: ResultsPosition) => void
@@ -30,20 +32,25 @@ function readResultsPosition(): ResultsPosition {
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(readTheme)
   const [resultsPosition, setResultsPosition] = useState<ResultsPosition>(readResultsPosition)
+  const [systemPrefersDark, setSystemPrefersDark] = useState<boolean>(
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
+  )
 
   useEffect(() => {
     const mql = window.matchMedia("(prefers-color-scheme: dark)")
-    const apply = () => {
-      const shouldBeDark =
-        theme === "dark" || (theme === "system" && mql.matches)
-      document.documentElement.classList.toggle("dark", shouldBeDark)
-    }
-    apply()
-    if (theme === "system") {
-      mql.addEventListener("change", apply)
-      return () => mql.removeEventListener("change", apply)
-    }
-  }, [theme])
+    const onChange = () => setSystemPrefersDark(mql.matches)
+    mql.addEventListener("change", onChange)
+    return () => mql.removeEventListener("change", onChange)
+  }, [])
+
+  const resolvedTheme: ResolvedTheme =
+    theme === "dark" ? "dark"
+    : theme === "light" ? "light"
+    : systemPrefersDark ? "dark" : "light"
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", resolvedTheme === "dark")
+  }, [resolvedTheme])
 
   useEffect(() => {
     localStorage.setItem(THEME_KEY, theme)
@@ -55,7 +62,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   return (
     <SettingsContext.Provider
-      value={{ theme, resultsPosition, setTheme, setResultsPosition }}
+      value={{ theme, resolvedTheme, resultsPosition, setTheme, setResultsPosition }}
     >
       {children}
     </SettingsContext.Provider>

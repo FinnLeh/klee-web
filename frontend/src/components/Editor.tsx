@@ -1,0 +1,27 @@
+import { Editor as MonacoEditor } from "@monaco-editor/react"
+import { useSettings } from "../context/SettingsContext"
+
+type EditorProps = {
+  value: string
+  onChange: (next: string) => void
+}
+
+export function Editor({ value, onChange }: EditorProps) {
+  const { resolvedTheme } = useSettings()
+  const monacoTheme = resolvedTheme === "dark" ? "vs-dark" : "vs-light"
+
+  return (
+    <MonacoEditor
+      height="100%"
+      language="c"
+      theme={monacoTheme}
+      value={value}
+      onChange={(next) => onChange(next ?? "")}
+      options={{
+        minimap: { enabled: false },
+        fontSize: 14,
+        automaticLayout: true,
+      }}
+    />
+  )
+}
