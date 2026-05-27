@@ -28,14 +28,18 @@ klee-web/
 The backend, frontend, and runner pieces run independently. End-to-end
 execution requires Docker plus the locally-built runner image.
 
-The frontend renders the layout chassis. The status bar slot is live: a
-backend-connected indicator that polls `/openapi.json` every 5 seconds, the
-source byte count, and the pinned KLEE version. The other slots (top bar,
-editor, results, flag bar, settings popover) still render placeholder content;
-the remaining components land over the next few frontend sessions. Theme and
-layout-position settings are wired and persist across reloads. End-to-end
-traffic against the backend is exercised through the Swagger UI until the
-editor and run-button slots land.
+The frontend is functional end-to-end. The page loads with a demo C program in
+a Monaco editor; the top bar carries the KLEE wordmark, inline flag inputs for
+`max_time` and `max_memory`, a Run button, and a settings cog. Run posts to the
+backend and the results panel polls and renders pending, running (with a
+curated live-stats grid: instructions, active states, full branches, wall
+time), done (test cases plus a KLEE messages and warnings collapsible), and
+compile-error states. A timeout reads as an amber `Stopped at max time` badge
+under the tab bar; a clean run reads `Explored all paths`. The bottom status
+bar shows a backend-connected indicator (5 s poll of `/openapi.json`), the
+current source byte count, and the pinned KLEE version. Theme (system / light /
+dark) and results-position (right / below) settings persist across reloads via
+the settings popover.
 
 ### Runner image
 

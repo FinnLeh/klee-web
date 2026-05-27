@@ -46,3 +46,4 @@ Don't write ADRs for:
 | 0008 | KleeRunner protocol surface | Accepted |
 | 0009 | Per-job containers, not a long-lived runner process | Accepted |
 | 0010 | Frontend data layer (openapi-typescript + openapi-fetch + React Query) | Accepted |
+| 0011 | Frontend layered architecture (Types / API client / Hooks / Components) | Accepted |

@@ -18,8 +18,13 @@ React + TypeScript single-page app. Editor for C source, submit button, results 
 - `src/types/api.ts`: types generated from the backend OpenAPI spec, committed
 - `src/context/SettingsContext.tsx`: theme (system/dark/light, default system) and results-position (right/below), localStorage-backed
 - `src/components/Workspace.tsx`: layout chassis with five slot props (`topBar`, `sidebar?`, `main`, `results`, `statusBar`); `resultsPosition` flips main/results between row and column
+- `src/components/TopBar.tsx`: KLEE wordmark, inline `FlagBar`, Run button, settings cog. Owns the local `settingsOpen` state and the document `pointerdown` / `keydown` listeners that dismiss the popover
+- `src/components/FlagBar.tsx`: inline number inputs for `max_time` and `max_memory` with valid / empty / invalid discriminated-union validation. Empty snaps to default on blur; invalid shows a floating rose-bordered explanation and snaps back to the last valid value
+- `src/components/Editor.tsx`: `@monaco-editor/react` wrapper. C language, controlled `value` / `onChange`, theme from `useSettings().resolvedTheme` mapped to `vs-dark` / `vs-light`
+- `src/components/Results.tsx`: dispatch on job status with eight branches (empty / loading / connection error / pending / running / compile error / done / failed). Running state surfaces a curated 2x2 stat grid; DoneView holds local tab state (Test cases / Stats) and renders a `HaltBadge` between TabBar and scroll area
+- `src/components/SettingsPopover.tsx`: panel with two segmented controls (theme: system / light / dark; results position: right / below). Pure presentational, reads and writes `useSettings()`
 - `src/components/StatusBar.tsx`: bottom strip with backend-connected indicator (polls `/openapi.json` every 5 s via React Query, two-state connected/disconnected derived from `data` + `isError`), source byte count, pinned KLEE version
-- `src/pages/HomePage.tsx`: composes Workspace at route `/`; status bar slot is live, the others (top bar, editor, results, flag bar, settings popover) still render placeholder content until those components land
+- `src/pages/HomePage.tsx`: composes Workspace at route `/`. Owns `source`, `flags`, and `jobId` state. `handleRun` posts via `useSubmitJob` and sets `jobId` on success; `useJob(jobId)` inside `Results` drives the polling
 
 ## Editor
 
