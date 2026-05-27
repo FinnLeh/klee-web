@@ -47,6 +47,11 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /**
+         * HaltReason
+         * @enum {string}
+         */
+        HaltReason: "completed" | "max_time";
         /** Job */
         Job: {
             /**
@@ -91,6 +96,7 @@ export interface components {
             };
             /** Compile Error */
             compile_error?: string | null;
+            halt_reason?: components["schemas"]["HaltReason"] | null;
         };
         /**
          * JobStatus

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react"
-import type { JobResult, TestCase } from "../api/jobs"
+import type { HaltReason, JobResult, TestCase } from "../api/jobs"
 import { useJob } from "../hooks/useJob"
 
 type ResultsProps = {
@@ -134,6 +134,7 @@ function DoneView({ result }: { result: JobResult }) {
         onTabChange={setTab}
         testCaseCount={result.test_cases.length}
       />
+      {result.halt_reason && <HaltBadge reason={result.halt_reason} />}
       <div className="flex-1 overflow-auto p-4 space-y-4">
         {tab === "tests" ? (
           <TestCasesPanel testCases={result.test_cases} />
@@ -143,6 +144,21 @@ function DoneView({ result }: { result: JobResult }) {
         {result.messages && <Collapsible title="Messages" content={result.messages} />}
         {result.warnings && <Collapsible title="Warnings" content={result.warnings} />}
       </div>
+    </div>
+  )
+}
+
+function HaltBadge({ reason }: { reason: HaltReason }) {
+  const isTimeout = reason === "max_time"
+  const label = isTimeout
+    ? "Stopped at max time. Some paths may be unexplored."
+    : "Explored all paths."
+  const color = isTimeout
+    ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300"
+    : "bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400"
+  return (
+    <div className={`px-4 py-1.5 text-xs border-b border-slate-200 dark:border-slate-700 ${color}`}>
+      {label}
     </div>
   )
 }

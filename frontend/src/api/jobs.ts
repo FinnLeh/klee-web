@@ -1,6 +1,7 @@
 import type { components } from "../types/api";
 import { apiClient } from "./client";
 
+export type HaltReason = components["schemas"]["HaltReason"];
 export type Job = components["schemas"]["Job"];
 export type JobCreated = components["schemas"]["JobCreated"];
 export type JobRequest = components["schemas"]["JobRequest"];
