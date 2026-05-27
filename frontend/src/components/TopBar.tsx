@@ -1,14 +1,36 @@
+import { useEffect, useRef, useState } from "react"
 import type { KleeFlags } from "../api/jobs"
 import { FlagBar } from "./FlagBar"
+import { SettingsPopover } from "./SettingsPopover"
 
 type TopBarProps = {
   flags: KleeFlags
   onFlagsChange: (next: KleeFlags) => void
   onRun: () => void
-  onOpenSettings: () => void
 }
 
-export function TopBar({ flags, onFlagsChange, onRun, onOpenSettings }: TopBarProps) {
+export function TopBar({ flags, onFlagsChange, onRun }: TopBarProps) {
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const settingsRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!settingsOpen) return
+    const onPointerDown = (e: PointerEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setSettingsOpen(false)
+      }
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSettingsOpen(false)
+    }
+    document.addEventListener("pointerdown", onPointerDown)
+    document.addEventListener("keydown", onKeyDown)
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown)
+      document.removeEventListener("keydown", onKeyDown)
+    }
+  }, [settingsOpen])
+
   return (
     <div className="px-3 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 flex items-center justify-between text-slate-900 dark:text-slate-100">
       <div className="flex items-center gap-6">
@@ -24,14 +46,18 @@ export function TopBar({ flags, onFlagsChange, onRun, onOpenSettings }: TopBarPr
           <PlayIcon />
           Run
         </button>
-        <button
-          type="button"
-          onClick={onOpenSettings}
-          aria-label="Settings"
-          className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800"
-        >
-          <CogIcon />
-        </button>
+        <div ref={settingsRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setSettingsOpen((v) => !v)}
+            aria-label="Settings"
+            aria-expanded={settingsOpen}
+            className="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800"
+          >
+            <CogIcon />
+          </button>
+          {settingsOpen && <SettingsPopover />}
+        </div>
       </div>
     </div>
   )

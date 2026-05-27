@@ -33,7 +33,6 @@ export function HomePage() {
           flags={flags}
           onFlagsChange={setFlags}
           onRun={() => {}}
-          onOpenSettings={() => {}}
         />
       }
       main={<Editor value={source} onChange={setSource} />}
