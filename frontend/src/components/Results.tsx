@@ -4,13 +4,14 @@ import { useJob } from "../hooks/useJob"
 
 type ResultsProps = {
   jobId: string | null
+  submitError: boolean
 }
 
-export function Results({ jobId }: ResultsProps) {
-  const { data: job, isError } = useJob(jobId)
+export function Results({ jobId, submitError }: ResultsProps) {
+  const { data: job, isError: queryError } = useJob(jobId)
 
+  if (submitError || queryError) return <ConnectionErrorState />
   if (jobId === null) return <EmptyState />
-  if (isError) return <ConnectionErrorState />
   if (job === undefined) return <LoadingState />
 
   switch (job.status) {
