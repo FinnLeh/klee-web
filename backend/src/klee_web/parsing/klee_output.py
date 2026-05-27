@@ -2,7 +2,7 @@ import sqlite3
 import struct
 from pathlib import Path
 
-from klee_web.models import JobResult, TestCase
+from klee_web.models import HaltReason, JobResult, TestCase
 from klee_web.parsing.ktest import KTest
 
 
@@ -25,12 +25,26 @@ def parse_output_dir(output_dir: Path) -> JobResult:
             # Mid-write ktest; the watcher will see the finished file on a later tick.
             continue
 
+    messages = _read_or_empty(output_dir / "messages.txt")
+    info = _read_or_empty(output_dir / "info")
     return JobResult(
         test_cases=test_cases,
-        messages=_read_or_empty(output_dir / "messages.txt"),
+        messages=messages,
         warnings=_read_or_empty(output_dir / "warnings.txt"),
         stats=_read_stats(output_dir / "run.stats"),
+        halt_reason=_detect_halt_reason(messages, info),
     )
+
+
+def _detect_halt_reason(messages: str, info: str) -> HaltReason | None:
+    # KLEE writes the HaltTimer marker to messages.txt when --max-time fires,
+    # and its "KLEE: done:" summary lines to info only at termination. Absence of
+    # both means KLEE is still running, so we report None rather than guessing.
+    if "HaltTimer invoked" in messages:
+        return HaltReason.max_time
+    if "KLEE: done:" in info:
+        return HaltReason.completed
+    return None
 
 
 def _read_or_empty(path: Path) -> str:

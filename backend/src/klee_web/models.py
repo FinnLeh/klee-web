@@ -13,6 +13,11 @@ class JobStatus(StrEnum):
     failed = "failed"
 
 
+class HaltReason(StrEnum):
+    completed = "completed"
+    max_time = "max_time"
+
+
 class KleeFlags(BaseModel):
     max_time: Annotated[int, Field(ge=1, le=300)] = 60
     max_memory: Annotated[int, Field(ge=64, le=2048)] = 512
@@ -36,6 +41,7 @@ class JobResult(BaseModel):
     warnings: str
     stats: dict[str, int]
     compile_error: str | None = None
+    halt_reason: HaltReason | None = None
 
 
 class Job(BaseModel):

@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from klee_web.models import HaltReason
 from klee_web.parsing.klee_output import parse_output_dir
 
 FIXTURES = Path(__file__).parent.parent / "fixtures" / "klee_output_sample"
@@ -13,6 +14,7 @@ def test_parse_compile_error_returns_only_compile_error_field():
     assert result.messages == ""
     assert result.warnings == ""
     assert result.stats == {}
+    assert result.halt_reason is None
 
 
 def test_parse_happy_path_returns_three_test_cases_with_decoded_inputs():
@@ -54,3 +56,18 @@ def test_parse_runtime_error_attaches_err_to_matching_test_case():
     assert "input.c" in result.test_cases[0].error
     assert result.test_cases[1].error is None
     assert result.compile_error is None
+
+
+def test_parse_happy_path_halt_reason_is_completed():
+    result = parse_output_dir(FIXTURES / "happy_path" / "output")
+    assert result.halt_reason == HaltReason.completed
+
+
+def test_parse_runtime_error_halt_reason_is_completed():
+    result = parse_output_dir(FIXTURES / "runtime_error" / "output")
+    assert result.halt_reason == HaltReason.completed
+
+
+def test_parse_max_time_halt_reason_is_max_time():
+    result = parse_output_dir(FIXTURES / "max_time" / "output")
+    assert result.halt_reason == HaltReason.max_time

@@ -7,6 +7,7 @@ Captured runner output directories consumed by the parser tests in `tests/unit/t
 - `happy_path/`: canonical KLEE tutorial program (`get_sign`), three paths, three test cases, no errors.
 - `compile_error/`: same program with `#include <klee/klee.h>` removed. Entrypoint writes `compile_error.txt` and exits 0; `output/` contains only that file.
 - `runtime_error/`: divide-by-zero with `x` symbolic. KLEE emits `test000001.div.err` alongside the `.ktest` files.
+- `max_time/`: bubble sort on 14 symbolic ints, run with `--max-time=3`. KLEE writes `HaltTimer invoked` to `messages.txt` and dumps remaining states. Trimmed to three `.ktest` files; the full run produced 251.
 
 ## Files in each `output/`
 
