@@ -20,13 +20,23 @@ klee-web/
 ├── frontend/       React + TypeScript + Vite. Editor and results UI.
 ├── runner/         Docker image and entrypoint that actually runs KLEE.
 ├── docs/adr/       Architecture Decision Records.
-└── docker-compose.yml   Local dev orchestration (added once components exist).
+└── Makefile        `make up` builds the runner image and runs backend + frontend dev servers.
 ```
 
 ## Running locally
 
-The backend, frontend, and runner pieces run independently. End-to-end
-execution requires Docker plus the locally-built runner image.
+Requires `uv` and `node` on the host.
+
+```bash
+make up
+```
+
+`make up` builds the `klee-web-runner` Docker image (idempotent), then starts
+uvicorn (`localhost:8000`, `--reload`) and the Vite dev server
+(`localhost:5173`) as background processes. Both hot-reload on file changes.
+Ctrl+C stops both.
+
+OpenAPI surface at <http://localhost:8000/docs>. App at <http://localhost:5173>.
 
 The frontend is functional end-to-end. The page loads with a demo C program in
 a Monaco editor; the top bar carries the KLEE wordmark, inline flag inputs for
@@ -40,39 +50,6 @@ bar shows a backend-connected indicator (5 s poll of `/openapi.json`), the
 current source byte count, and the pinned KLEE version. Theme (system / light /
 dark) and results-position (right / below) settings persist across reloads via
 the settings popover.
-
-### Runner image
-
-Build the runner image once before booting the backend, and rebuild after any
-change to `runner/Dockerfile` or `runner/entrypoint.py`:
-
-```bash
-docker build -t klee-web-runner ./runner
-```
-
-### Backend
-
-```bash
-cd backend
-uv sync
-uv run uvicorn klee_web.main:app --port 8000
-```
-
-OpenAPI surface at <http://localhost:8000/docs>. `POST /jobs` compiles and
-runs the submitted C source via the runner image and returns a `job_id`;
-`GET /jobs/{id}` returns the parsed result with test cases, errors, and stats.
-The backend assumes the `klee-web-runner` image is built; without it, `POST
-/jobs` returns 500 with a runner error.
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Vite dev server at <http://localhost:5173>.
 
 ## Design
 
