@@ -51,6 +51,17 @@ current source byte count, and the pinned KLEE version. Theme (system / light /
 dark) and results-position (right / below) settings persist across reloads via
 the settings popover.
 
+## Pre-commit hooks
+
+One-time per clone:
+
+```bash
+uv tool install pre-commit
+pre-commit install
+```
+
+After that, `git commit` runs ruff (backend), eslint (frontend), and whitespace / end-of-file checks. The eslint hook needs `frontend/node_modules`, so run `npm install` in `frontend/` once before the first commit.
+
 ## Design
 
 Architecture is documented in `docs/adr/`, one ADR per major decision.
