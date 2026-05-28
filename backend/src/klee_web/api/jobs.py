@@ -43,9 +43,7 @@ async def _run_job_in_background(
         await store.set_partial_result(job_id, partial)
 
     try:
-        result = await runner.execute(
-            request.source, request.flags, on_progress=on_progress
-        )
+        result = await runner.execute(request.source, request.flags, on_progress=on_progress)
         await store.set_result(job_id, result)
     except KleeRunnerError:
         await store.update_status(job_id, JobStatus.failed)

@@ -75,10 +75,15 @@ class DockerKleeRunner:
 
             try:
                 proc = await asyncio.create_subprocess_exec(
-                    "docker", "run", "--rm",
-                    "-v", f"{tmpdir}:/work",
-                    "-e", f"KLEE_MAX_TIME={flags.max_time}",
-                    "-e", f"KLEE_MAX_MEMORY={flags.max_memory}",
+                    "docker",
+                    "run",
+                    "--rm",
+                    "-v",
+                    f"{tmpdir}:/work",
+                    "-e",
+                    f"KLEE_MAX_TIME={flags.max_time}",
+                    "-e",
+                    f"KLEE_MAX_MEMORY={flags.max_memory}",
                     IMAGE_TAG,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,

@@ -29,7 +29,10 @@ async def test_post_jobs_calls_runner_with_source_and_flags(client, runner, wait
 
 
 async def test_post_jobs_happy_path_stores_result_and_advances_to_done(
-    client, store, sample_result, wait_for_jobs,
+    client,
+    store,
+    sample_result,
+    wait_for_jobs,
 ):
     response = await client.post("/jobs", json={"source": "int main(){}"})
     job_id = UUID(response.json()["job_id"])
@@ -81,7 +84,11 @@ async def test_get_jobs_returns_404_for_unknown_id(client):
 
 
 async def test_post_runs_in_background_and_streams_partial_results(
-    client, app, store, wait_for_jobs, sample_result,
+    client,
+    app,
+    store,
+    wait_for_jobs,
+    sample_result,
 ):
     """POST returns immediately; partial lands while running; final lands at completion."""
     partial_emitted = asyncio.Event()

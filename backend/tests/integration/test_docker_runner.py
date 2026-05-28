@@ -91,10 +91,7 @@ async def test_docker_runner_surfaces_compile_error_from_missing_include():
         timeout=30,
     )
     assert result.compile_error is not None
-    assert (
-        "klee_make_symbolic" in result.compile_error
-        or "undeclared" in result.compile_error
-    )
+    assert "klee_make_symbolic" in result.compile_error or "undeclared" in result.compile_error
     assert result.test_cases == []
     assert result.stats == {}
 
