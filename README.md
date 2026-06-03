@@ -53,6 +53,25 @@ current source byte count, and the pinned KLEE version. Theme (system / light /
 dark) and results-position (right / below) settings persist across reloads via
 the settings popover.
 
+## Regenerating the API contract
+
+The backend emits its OpenAPI spec from the Pydantic models. The frontend's
+TypeScript types live in `frontend/src/types/api.ts`, generated from that spec
+and committed to the repo. They do not regenerate on their own.
+
+After any backend change that alters the contract (a renamed field, a new
+endpoint, a changed shape), regenerate the types:
+
+```bash
+cd frontend && npm run gen:types
+```
+
+The script reads the live `/openapi.json`, so the backend must already be
+running (`make up`, or uvicorn on `localhost:8000`). Commit the updated
+`api.ts` alongside the backend change. A stale `api.ts` surfaces as a frontend
+type error against the new contract, which is the point: drift fails at compile
+time instead of silently.
+
 ## Pre-commit hooks
 
 One-time per clone:
