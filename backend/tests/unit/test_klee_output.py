@@ -46,6 +46,16 @@ def test_parse_happy_path_reads_run_stats_final_row():
     assert isinstance(result.stats["WallTime"], int)
 
 
+def test_parse_progress_skips_test_cases_but_keeps_stats_and_messages():
+    result = parse_output_dir(FIXTURES / "happy_path" / "output", include_test_cases=False)
+    assert result.test_cases == []
+    assert result.stats["Instructions"] == 13358
+    assert "STP solver backend" in result.messages
+    assert "WARNING ONCE" in result.warnings
+    assert result.halt_reason == HaltReason.completed
+    assert result.compile_error is None
+
+
 def test_parse_runtime_error_attaches_err_to_matching_test_case():
     result = parse_output_dir(FIXTURES / "runtime_error" / "output")
     assert [tc.name for tc in result.test_cases] == ["test000001", "test000002"]

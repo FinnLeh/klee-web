@@ -6,7 +6,7 @@ from klee_web.models import HaltReason, JobResult, TestCase
 from klee_web.parsing.ktest import KTest
 
 
-def parse_output_dir(output_dir: Path) -> JobResult:
+def parse_output_dir(output_dir: Path, *, include_test_cases: bool = True) -> JobResult:
     compile_error_path = output_dir / "compile_error.txt"
     if compile_error_path.exists():
         return JobResult(
@@ -17,13 +17,19 @@ def parse_output_dir(output_dir: Path) -> JobResult:
             compile_error=compile_error_path.read_text(),
         )
 
+    # Progress polls pass include_test_cases=False: KLEE writes a ktest per
+    # terminated path (thousands during a single run), so opening them all on
+    # every watcher tick is the work that blocks the event loop. The running UI
+    # shows only stats, so partials skip the ktests; the final parse reads them.
     test_cases: list[TestCase] = []
-    for p in sorted(output_dir.glob("*.ktest")):
-        try:
-            test_cases.append(_test_case_from_ktest(p))
-        except (OSError, ValueError, EOFError, struct.error):
-            # Mid-write ktest; the watcher will see the finished file on a later tick.
-            continue
+    if include_test_cases:
+        err_files_by_stem = _err_files_by_stem(output_dir)
+        for p in sorted(output_dir.glob("*.ktest")):
+            try:
+                test_cases.append(_test_case_from_ktest(p, err_files_by_stem.get(p.stem, [])))
+            except (OSError, ValueError, EOFError, struct.error):
+                # Mid-write ktest; the watcher will see the finished file on a later tick.
+                continue
 
     messages = _read_or_empty(output_dir / "messages.txt")
     info = _read_or_empty(output_dir / "info")
@@ -75,11 +81,21 @@ def _read_stats(path: Path) -> dict[str, int]:
 _INT_SIZE_FORMATS = {1: "<b", 2: "<h", 4: "<i", 8: "<q"}
 
 
-def _test_case_from_ktest(path: Path) -> TestCase:
+def _err_files_by_stem(output_dir: Path) -> dict[str, list[Path]]:
+    # KLEE names error files <test_stem>.<errortype>.err. Glob once and group by
+    # test stem so each ktest is a dict lookup, not a fresh directory scan. The
+    # old per-ktest glob was O(n^2) and dominated the final parse on large runs.
+    by_stem: dict[str, list[Path]] = {}
+    for err in output_dir.glob("*.err"):
+        by_stem.setdefault(err.name.split(".", 1)[0], []).append(err)
+    for files in by_stem.values():
+        files.sort()
+    return by_stem
+
+
+def _test_case_from_ktest(path: Path, err_files: list[Path]) -> TestCase:
     ktest = KTest.fromfile(str(path))
     inputs = {name: _decode_object_value(data) for name, data in ktest.objects}
-    # KLEE names error files <test_stem>.<errortype>.err next to the .ktest.
-    err_files = sorted(path.parent.glob(f"{path.stem}.*.err"))
     error = "\n".join(p.read_text() for p in err_files) if err_files else None
     return TestCase(name=path.stem, inputs=inputs, error=error)
 

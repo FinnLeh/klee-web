@@ -112,7 +112,7 @@ class DockerKleeRunner:
             if not output_dir.exists():
                 raise KleeRunnerError("runner produced no output directory")
 
-            return parse_output_dir(output_dir)
+            return await asyncio.to_thread(parse_output_dir, output_dir)
 
 
 async def _watch_output_dir(output_dir: Path, on_progress: OnProgress) -> None:
@@ -126,5 +126,5 @@ async def _watch_output_dir(output_dir: Path, on_progress: OnProgress) -> None:
         await asyncio.sleep(_WATCH_INTERVAL_SECONDS)
         if not output_dir.exists():
             continue
-        partial = parse_output_dir(output_dir)
+        partial = await asyncio.to_thread(parse_output_dir, output_dir, include_test_cases=False)
         await on_progress(partial)
