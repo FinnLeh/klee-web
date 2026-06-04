@@ -102,7 +102,7 @@ export interface components {
          * JobStatus
          * @enum {string}
          */
-        JobStatus: "pending" | "running" | "done" | "failed";
+        JobStatus: "pending" | "running" | "parsing" | "done" | "failed";
         /** KleeFlags */
         KleeFlags: {
             /**

@@ -19,6 +19,8 @@ export function Results({ jobId, submitError }: ResultsProps) {
       return <PendingState />
     case "running":
       return <RunningState result={job.result ?? null} />
+    case "parsing":
+      return <ParsingState result={job.result ?? null} />
     case "done":
       if (job.result?.compile_error) {
         return <CompileErrorView error={job.result.compile_error} />
@@ -92,6 +94,48 @@ function RunningState({ result }: { result: JobResult | null }) {
         Test cases will appear when KLEE finishes.
       </div>
     </div>
+  )
+}
+
+function ParsingState({ result }: { result: JobResult | null }) {
+  const hasStats = !!result?.stats && Object.keys(result.stats).length > 0
+  return (
+    <div className="h-full p-6 flex flex-col items-center justify-center gap-6 text-slate-700 dark:text-slate-300">
+      <div className="flex flex-col items-center gap-1 text-center">
+        <div className="flex items-center gap-2">
+          <CheckIcon />
+          <span>KLEE finished. Loading results...</span>
+        </div>
+        <div className="text-xs text-slate-500 dark:text-slate-500">
+          This may take a few seconds depending on the number of test cases produced.
+        </div>
+      </div>
+      {hasStats && (
+        <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+          <StatTile label="Instructions" value={formatCount(result!.stats.Instructions)} />
+          <StatTile label="Active states" value={formatCount(result!.stats.NumStates)} />
+          <StatTile label="Full branches" value={formatCount(result!.stats.FullBranches)} />
+          <StatTile label="Wall time" value={formatWallTime(result!.stats.WallTime)} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      className="w-4 h-4 text-emerald-500"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+      />
+    </svg>
   )
 }
 

@@ -101,7 +101,7 @@ async def test_post_runs_in_background_and_streams_partial_results(
     )
 
     class BlockingStreamingRunner:
-        async def execute(self, source, flags, on_progress=None):
+        async def execute(self, source, flags, on_progress=None, on_parsing=None):
             if on_progress is not None:
                 await on_progress(partial)
             partial_emitted.set()
@@ -128,3 +128,40 @@ async def test_post_runs_in_background_and_streams_partial_results(
     assert job is not None
     assert job.status == JobStatus.done
     assert job.result == sample_result
+
+
+async def test_post_flips_to_parsing_between_klee_exit_and_result(
+    client,
+    app,
+    store,
+    wait_for_jobs,
+    sample_result,
+):
+    """When KLEE exits, status becomes 'parsing' until the final result lands, so
+    the UI can show it is loading results rather than appearing to hang."""
+    parsing_signaled = asyncio.Event()
+    finish_when = asyncio.Event()
+
+    class ParsingRunner:
+        async def execute(self, source, flags, on_progress=None, on_parsing=None):
+            if on_parsing is not None:
+                await on_parsing()
+            parsing_signaled.set()
+            await finish_when.wait()
+            return sample_result
+
+    app.dependency_overrides[get_runner] = lambda: ParsingRunner()
+
+    response = await client.post("/jobs", json={"source": "int main(){}"})
+    job_id = UUID(response.json()["job_id"])
+
+    await parsing_signaled.wait()
+    job = await store.get(job_id)
+    assert job is not None
+    assert job.status == JobStatus.parsing
+
+    finish_when.set()
+    await wait_for_jobs()
+    job = await store.get(job_id)
+    assert job is not None
+    assert job.status == JobStatus.done

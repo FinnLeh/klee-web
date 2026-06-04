@@ -13,6 +13,7 @@ _WATCH_INTERVAL_SECONDS = 1.0
 
 
 OnProgress = Callable[[JobResult], Awaitable[None]]
+OnParsing = Callable[[], Awaitable[None]]
 
 
 class KleeRunnerError(Exception):
@@ -28,6 +29,7 @@ class KleeRunner(Protocol):
         source: str,
         flags: KleeFlags,
         on_progress: OnProgress | None = None,
+        on_parsing: OnParsing | None = None,
     ) -> JobResult: ...
 
 
@@ -48,6 +50,7 @@ class FakeKleeRunner:
         source: str,
         flags: KleeFlags,
         on_progress: OnProgress | None = None,
+        on_parsing: OnParsing | None = None,
     ) -> JobResult:
         self.calls.append((source, flags))
         if self._raise_exc is not None:
@@ -56,6 +59,8 @@ class FakeKleeRunner:
             raise RuntimeError("FakeKleeRunner needs either canned_result or raise_exc")
         if on_progress is not None:
             await on_progress(self._canned_result)
+        if on_parsing is not None:
+            await on_parsing()
         return self._canned_result
 
 
@@ -67,6 +72,7 @@ class DockerKleeRunner:
         source: str,
         flags: KleeFlags,
         on_progress: OnProgress | None = None,
+        on_parsing: OnParsing | None = None,
     ) -> JobResult:
         with tempfile.TemporaryDirectory(prefix="klee-job-") as tmpdir_str:
             tmpdir = Path(tmpdir_str)
@@ -112,6 +118,8 @@ class DockerKleeRunner:
             if not output_dir.exists():
                 raise KleeRunnerError("runner produced no output directory")
 
+            if on_parsing is not None:
+                await on_parsing()
             return await asyncio.to_thread(parse_output_dir, output_dir)
 
 

@@ -42,8 +42,16 @@ async def _run_job_in_background(
     async def on_progress(partial: JobResult) -> None:
         await store.set_partial_result(job_id, partial)
 
+    async def on_parsing() -> None:
+        await store.update_status(job_id, JobStatus.parsing)
+
     try:
-        result = await runner.execute(request.source, request.flags, on_progress=on_progress)
+        result = await runner.execute(
+            request.source,
+            request.flags,
+            on_progress=on_progress,
+            on_parsing=on_parsing,
+        )
         await store.set_result(job_id, result)
     except KleeRunnerError:
         await store.update_status(job_id, JobStatus.failed)
