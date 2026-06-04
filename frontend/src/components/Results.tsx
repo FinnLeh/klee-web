@@ -169,24 +169,127 @@ function CompileErrorView({ error }: { error: string }) {
   )
 }
 
+const PAGE_SIZES = [25, 50, 75, 100] as const
+
 function DoneView({ result }: { result: JobResult }) {
   const [tab, setTab] = useState<"tests" | "stats">("tests")
+  const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0])
+  const [page, setPage] = useState(0)
+
+  const total = result.test_cases.length
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
+  const currentPage = Math.min(page, pageCount - 1)
+  const start = currentPage * pageSize
+  const pageItems = result.test_cases.slice(start, start + pageSize)
+
   return (
     <div className="h-full flex flex-col">
-      <TabBar
-        tab={tab}
-        onTabChange={setTab}
-        testCaseCount={result.test_cases.length}
-      />
+      <TabBar tab={tab} onTabChange={setTab} testCaseCount={total} />
       {result.halt_reason && <HaltBadge reason={result.halt_reason} />}
-      <div className="flex-1 overflow-auto p-4 space-y-4">
+      <MessagesWarnings messages={result.messages} warnings={result.warnings} />
+      {tab === "tests" && total > 0 && (
+        <PaginationControls
+          page={currentPage}
+          pageCount={pageCount}
+          pageSize={pageSize}
+          start={start}
+          shown={pageItems.length}
+          total={total}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size)
+            setPage(0)
+          }}
+        />
+      )}
+      <div className="flex-1 overflow-auto p-4">
         {tab === "tests" ? (
-          <TestCasesPanel testCases={result.test_cases} />
+          <TestCasesPanel testCases={pageItems} />
         ) : (
           <StatsPanel stats={result.stats} />
         )}
-        {result.messages && <Collapsible title="Messages" content={result.messages} />}
-        {result.warnings && <Collapsible title="Warnings" content={result.warnings} />}
+      </div>
+    </div>
+  )
+}
+
+function MessagesWarnings({
+  messages,
+  warnings,
+}: {
+  messages: string
+  warnings: string
+}) {
+  if (!messages && !warnings) return null
+  return (
+    <div className="shrink-0 px-4 py-2 space-y-2 border-b border-slate-200 dark:border-slate-700">
+      {messages && <Collapsible title="Messages" content={messages} />}
+      {warnings && <Collapsible title="Warnings" content={warnings} />}
+    </div>
+  )
+}
+
+function PaginationControls({
+  page,
+  pageCount,
+  pageSize,
+  start,
+  shown,
+  total,
+  onPageChange,
+  onPageSizeChange,
+}: {
+  page: number
+  pageCount: number
+  pageSize: number
+  start: number
+  shown: number
+  total: number
+  onPageChange: (p: number) => void
+  onPageSizeChange: (s: number) => void
+}) {
+  return (
+    <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 px-4 py-1.5 text-xs border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400">
+      <div className="flex items-center gap-1.5">
+        <span>Per page</span>
+        {PAGE_SIZES.map((size) => (
+          <button
+            key={size}
+            type="button"
+            onClick={() => onPageSizeChange(size)}
+            className={`px-1.5 py-0.5 rounded ${
+              size === pageSize
+                ? "bg-[var(--klee-accent)] text-white"
+                : "hover:text-slate-900 dark:hover:text-slate-100"
+            }`}
+          >
+            {size}
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center gap-2 tabular-nums">
+        <span>
+          Showing {start + 1} to {start + shown} of {total}
+        </span>
+        <button
+          type="button"
+          disabled={page === 0}
+          onClick={() => onPageChange(page - 1)}
+          className="px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 disabled:opacity-40 enabled:hover:bg-slate-100 dark:enabled:hover:bg-slate-800"
+        >
+          Prev
+        </button>
+        <span>
+          Page {page + 1} / {pageCount}
+        </span>
+        <button
+          type="button"
+          disabled={page >= pageCount - 1}
+          onClick={() => onPageChange(page + 1)}
+          className="px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 disabled:opacity-40 enabled:hover:bg-slate-100 dark:enabled:hover:bg-slate-800"
+        >
+          Next
+        </button>
       </div>
     </div>
   )
