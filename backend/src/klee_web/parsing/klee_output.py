@@ -1,9 +1,12 @@
+import logging
 import sqlite3
 import struct
 from pathlib import Path
 
 from klee_web.models import HaltReason, JobResult, TestCase
 from klee_web.parsing.ktest import KTest
+
+logger = logging.getLogger(__name__)
 
 
 def parse_output_dir(output_dir: Path, *, include_test_cases: bool = True) -> JobResult:
@@ -27,8 +30,9 @@ def parse_output_dir(output_dir: Path, *, include_test_cases: bool = True) -> Jo
         for p in sorted(output_dir.glob("*.ktest")):
             try:
                 test_cases.append(_test_case_from_ktest(p, err_files_by_stem.get(p.stem, [])))
-            except (OSError, ValueError, EOFError, struct.error):
-                # Mid-write ktest; the watcher will see the finished file on a later tick.
+            except (OSError, ValueError, EOFError, struct.error) as exc:
+                # Corrupt/truncated ktest; no later parse fixes it. Drop it, keep the run.
+                logger.warning("skipping unreadable ktest %s: %r", p, exc)
                 continue
 
     messages = _read_or_empty(output_dir / "messages.txt")
