@@ -5,9 +5,11 @@ import { useJob } from "../hooks/useJob"
 type ResultsProps = {
   jobId: string | null
   submitError: boolean
+  errorsFirst: boolean
+  onErrorsFirstChange: (value: boolean) => void
 }
 
-export function Results({ jobId, submitError }: ResultsProps) {
+export function Results({ jobId, submitError, errorsFirst, onErrorsFirstChange }: ResultsProps) {
   const { data: job, isError: queryError } = useJob(jobId)
 
   if (submitError || queryError) return <ConnectionErrorState />
@@ -25,7 +27,13 @@ export function Results({ jobId, submitError }: ResultsProps) {
       if (job.result?.compile_error) {
         return <CompileErrorView error={job.result.compile_error} />
       }
-      return <DoneView result={job.result!} />
+      return (
+        <DoneView
+          result={job.result!}
+          errorsFirst={errorsFirst}
+          onErrorsFirstChange={onErrorsFirstChange}
+        />
+      )
     case "failed":
       return <FailedState result={job.result ?? null} />
   }
@@ -171,16 +179,36 @@ function CompileErrorView({ error }: { error: string }) {
 
 const PAGE_SIZES = [25, 50, 75, 100] as const
 
-function DoneView({ result }: { result: JobResult }) {
+function DoneView({
+  result,
+  errorsFirst,
+  onErrorsFirstChange,
+}: {
+  result: JobResult
+  errorsFirst: boolean
+  onErrorsFirstChange: (value: boolean) => void
+}) {
   const [tab, setTab] = useState<"tests" | "stats">("tests")
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0])
   const [page, setPage] = useState(0)
 
-  const total = result.test_cases.length
+  const errorCount = result.test_cases.filter((tc) => tc.error != null).length
+  const sortedCases = errorsFirst
+    ? [...result.test_cases].sort(
+        (a, b) => (b.error != null ? 1 : 0) - (a.error != null ? 1 : 0),
+      )
+    : result.test_cases
+
+  const total = sortedCases.length
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
   const currentPage = Math.min(page, pageCount - 1)
   const start = currentPage * pageSize
-  const pageItems = result.test_cases.slice(start, start + pageSize)
+  const pageItems = sortedCases.slice(start, start + pageSize)
+
+  const handleErrorsFirstToggle = () => {
+    onErrorsFirstChange(!errorsFirst)
+    setPage(0)
+  }
 
   return (
     <div className="h-full flex flex-col">
@@ -200,6 +228,9 @@ function DoneView({ result }: { result: JobResult }) {
             setPageSize(size)
             setPage(0)
           }}
+          errorsFirst={errorsFirst}
+          errorCount={errorCount}
+          onToggleErrorsFirst={handleErrorsFirstToggle}
         />
       )}
       <div className="flex-1 overflow-auto p-4">
@@ -238,6 +269,9 @@ function PaginationControls({
   total,
   onPageChange,
   onPageSizeChange,
+  errorsFirst,
+  errorCount,
+  onToggleErrorsFirst,
 }: {
   page: number
   pageCount: number
@@ -247,6 +281,9 @@ function PaginationControls({
   total: number
   onPageChange: (p: number) => void
   onPageSizeChange: (s: number) => void
+  errorsFirst: boolean
+  errorCount: number
+  onToggleErrorsFirst: () => void
 }) {
   return (
     <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 px-4 py-1.5 text-xs border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400">
@@ -266,6 +303,27 @@ function PaginationControls({
             {size}
           </button>
         ))}
+        <span
+          className={errorCount === 0 ? "ml-2 cursor-not-allowed" : "ml-2"}
+          title={
+            errorCount === 0
+              ? "KLEE reported no error cases in this run."
+              : undefined
+          }
+        >
+          <button
+            type="button"
+            disabled={errorCount === 0}
+            onClick={onToggleErrorsFirst}
+            className={`px-1.5 py-0.5 rounded disabled:pointer-events-none disabled:opacity-40 ${
+              errorsFirst && errorCount > 0
+                ? "bg-[var(--klee-accent)] text-white"
+                : "hover:text-slate-900 dark:hover:text-slate-100"
+            }`}
+          >
+            Errors first ({errorCount})
+          </button>
+        </span>
       </div>
       <div className="flex items-center gap-2 tabular-nums">
         <span>
