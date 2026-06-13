@@ -93,3 +93,17 @@ def test_parse_program_output_reads_captured_program_stdout():
     assert "hello from klee web" in result.program_output
     assert "x is positive" in result.program_output
     assert "x is not positive" in result.program_output
+
+
+def test_parse_path_constraint_is_none_when_no_kquery_files():
+    result = parse_output_dir(FIXTURES / "happy_path" / "output")
+    assert all(tc.path_constraint is None for tc in result.test_cases)
+
+
+def test_parse_path_constraint_reads_kquery_per_test_case():
+    result = parse_output_dir(FIXTURES / "kquery" / "output")
+    assert len(result.test_cases) == 3
+    for tc in result.test_cases:
+        assert tc.path_constraint is not None
+        assert "query" in tc.path_constraint
+    assert "ReadLSB w32 0 x" in result.test_cases[0].path_constraint

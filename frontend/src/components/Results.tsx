@@ -453,6 +453,16 @@ function TestCaseCard({ testCase }: { testCase: TestCase }) {
           {testCase.error}
         </div>
       )}
+      {testCase.path_constraint && (
+        <details className="border-t border-slate-200 dark:border-slate-700">
+          <summary className="px-3 py-1.5 cursor-pointer select-none text-xs text-slate-600 dark:text-slate-400">
+            Path constraint (KQuery)
+          </summary>
+          <pre className="px-3 py-2 text-xs font-mono whitespace-pre-wrap overflow-auto max-h-64 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
+            {testCase.path_constraint}
+          </pre>
+        </details>
+      )}
     </div>
   )
 }

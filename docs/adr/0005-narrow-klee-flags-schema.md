@@ -36,3 +36,4 @@ The defaults are chosen as a reasonable baseline for short interactive runs. Bou
 ## References
 
 - ADR-0001: stage-based additive architecture (the staging context that makes "ship narrow now, widen later" a deliberate choice).
+- ADR-0012: extends this schema with `query_format` (the first concrete-request expansion).

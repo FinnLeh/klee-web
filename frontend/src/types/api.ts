@@ -120,7 +120,14 @@ export interface components {
              * @default 512
              */
             max_memory: number;
+            /** @default none */
+            query_format: components["schemas"]["QueryFormat"];
         };
+        /**
+         * QueryFormat
+         * @enum {string}
+         */
+        QueryFormat: "none" | "kquery";
         /** TestCase */
         TestCase: {
             /** Name */
@@ -131,6 +138,8 @@ export interface components {
             };
             /** Error */
             error?: string | null;
+            /** Path Constraint */
+            path_constraint?: string | null;
         };
         /** ValidationError */
         ValidationError: {

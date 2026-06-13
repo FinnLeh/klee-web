@@ -24,7 +24,11 @@ int main() {
 
 export function HomePage() {
   const [source, setSource] = useState<string>(GET_SIGN_C)
-  const [flags, setFlags] = useState<KleeFlags>({ max_time: 60, max_memory: 512 })
+  const [flags, setFlags] = useState<KleeFlags>({
+    max_time: 60,
+    max_memory: 512,
+    query_format: "none",
+  })
   const [jobId, setJobId] = useState<string | null>(null)
   const [errorsFirst, setErrorsFirst] = useState(false)
   const submitMutation = useSubmitJob()

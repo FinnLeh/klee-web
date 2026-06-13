@@ -102,7 +102,9 @@ def _test_case_from_ktest(path: Path, err_files: list[Path]) -> TestCase:
     ktest = KTest.fromfile(str(path))
     inputs = {name: _decode_object_value(data) for name, data in ktest.objects}
     error = "\n".join(p.read_text() for p in err_files) if err_files else None
-    return TestCase(name=path.stem, inputs=inputs, error=error)
+    kquery_path = path.with_suffix(".kquery")
+    path_constraint = kquery_path.read_text() if kquery_path.exists() else None
+    return TestCase(name=path.stem, inputs=inputs, error=error, path_constraint=path_constraint)
 
 
 def _decode_object_value(data: bytes) -> str:

@@ -19,9 +19,15 @@ class HaltReason(StrEnum):
     max_time = "max_time"
 
 
+class QueryFormat(StrEnum):
+    none = "none"
+    kquery = "kquery"
+
+
 class KleeFlags(BaseModel):
     max_time: Annotated[int, Field(ge=1, le=300)] = 60
     max_memory: Annotated[int, Field(ge=64, le=2048)] = 512
+    query_format: QueryFormat = QueryFormat.none
 
 
 class JobRequest(BaseModel):
@@ -34,6 +40,7 @@ class TestCase(BaseModel):
     name: str
     inputs: dict[str, str]
     error: str | None = None
+    path_constraint: str | None = None
 
 
 class JobResult(BaseModel):

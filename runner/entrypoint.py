@@ -9,6 +9,9 @@ backend distinguishes this from a runner crash via the presence of that file.
 KLEE's stdout carries the user program's own output (its printf/cout), so we
 capture it and write it to /work/output/program_output.txt. KLEE's stderr (its
 own diagnostics) is left to flow to the container so the backend still sees it.
+
+When KLEE_QUERY_FORMAT=kquery, pass --write-kqueries so KLEE emits a .kquery
+(path constraint) file per test case.
 """
 import os
 import shutil
@@ -25,6 +28,7 @@ KLEE_INCLUDE = "/home/klee/klee_src/include"
 def main() -> int:
     max_time = os.environ.get("KLEE_MAX_TIME", "60")
     max_memory = os.environ.get("KLEE_MAX_MEMORY", "512")
+    query_format = os.environ.get("KLEE_QUERY_FORMAT", "none")
 
     compile_proc = subprocess.run(
         [
@@ -48,19 +52,19 @@ def main() -> int:
     if OUTPUT_DIR.exists():
         shutil.rmtree(OUTPUT_DIR)
 
-    klee_proc = subprocess.run(
-        [
-            "klee",
-            "--libc=uclibc",
-            "--posix-runtime",
-            f"--max-time={max_time}",
-            f"--max-memory={max_memory}",
-            f"--output-dir={OUTPUT_DIR}",
-            str(BITCODE),
-        ],
-        stdout=subprocess.PIPE,
-        text=True,
-    )
+    klee_cmd = [
+        "klee",
+        "--libc=uclibc",
+        "--posix-runtime",
+        f"--max-time={max_time}",
+        f"--max-memory={max_memory}",
+        f"--output-dir={OUTPUT_DIR}",
+    ]
+    if query_format == "kquery":
+        klee_cmd.append("--write-kqueries")
+    klee_cmd.append(str(BITCODE))
+
+    klee_proc = subprocess.run(klee_cmd, stdout=subprocess.PIPE, text=True)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUTPUT_DIR / "program_output.txt").write_text(klee_proc.stdout or "")
     return klee_proc.returncode

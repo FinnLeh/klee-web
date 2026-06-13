@@ -38,6 +38,29 @@ export function FlagBar({ flags, onFlagsChange }: FlagBarProps) {
     <div className="flex items-center gap-5">
       <FlagInput spec={TIME} flags={flags} onFlagsChange={onFlagsChange} />
       <FlagInput spec={MEMORY} flags={flags} onFlagsChange={onFlagsChange} />
+      <QueryFormatSelect flags={flags} onFlagsChange={onFlagsChange} />
+    </div>
+  )
+}
+
+function QueryFormatSelect({ flags, onFlagsChange }: FlagBarProps) {
+  return (
+    <div className="flex items-center gap-1.5 text-sm">
+      <span className="text-slate-600 dark:text-slate-400">path constraint</span>
+      <select
+        value={flags.query_format ?? "none"}
+        onChange={(e) =>
+          onFlagsChange({
+            ...flags,
+            query_format: e.target.value as KleeFlags["query_format"],
+          })
+        }
+        aria-label="path constraint format"
+        className="px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 focus:outline-none focus:ring-1 focus:ring-[var(--klee-accent)]"
+      >
+        <option value="none">off</option>
+        <option value="kquery">KQuery</option>
+      </select>
     </div>
   )
 }
