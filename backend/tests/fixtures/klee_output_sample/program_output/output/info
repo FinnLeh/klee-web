@@ -1,0 +1,23 @@
+klee --libc=uclibc --posix-runtime --max-time=10 --max-memory=512 --output-dir=/work/output /work/code.bc
+PID: 7
+Using monotonic steady clock with 1/1000000000s resolution
+Started: 2026-06-13 15:04:15
+BEGIN searcher description
+<InterleavedSearcher> containing 2 searchers:
+RandomPathSearcher
+WeightedRandomSearcher::CoveringNew
+</InterleavedSearcher>
+END searcher description
+Finished: 2026-06-13 15:04:15
+Elapsed: 00:00:00
+KLEE: done: explored paths = 2
+KLEE: done: avg. constructs per query = 8
+KLEE: done: total queries = 2
+KLEE: done: valid queries = 0
+KLEE: done: invalid queries = 2
+KLEE: done: query cex = 2
+
+KLEE: done: total instructions = 13255
+KLEE: done: completed paths = 2
+KLEE: done: partially completed paths = 0
+KLEE: done: generated tests = 2

@@ -42,6 +42,7 @@ def parse_output_dir(output_dir: Path, *, include_test_cases: bool = True) -> Jo
         messages=messages,
         warnings=_read_or_empty(output_dir / "warnings.txt"),
         stats=_read_stats(output_dir / "run.stats"),
+        program_output=_read_or_empty(output_dir / "program_output.txt"),
         halt_reason=_detect_halt_reason(messages, info),
     )
 

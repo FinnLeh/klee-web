@@ -214,7 +214,11 @@ function DoneView({
     <div className="h-full flex flex-col">
       <TabBar tab={tab} onTabChange={setTab} testCaseCount={total} />
       {result.halt_reason && <HaltBadge reason={result.halt_reason} />}
-      <MessagesWarnings messages={result.messages} warnings={result.warnings} />
+      <MessagesWarnings
+        programOutput={result.program_output}
+        messages={result.messages}
+        warnings={result.warnings}
+      />
       {tab === "tests" && total > 0 && (
         <PaginationControls
           page={currentPage}
@@ -245,15 +249,18 @@ function DoneView({
 }
 
 function MessagesWarnings({
+  programOutput,
   messages,
   warnings,
 }: {
+  programOutput: string
   messages: string
   warnings: string
 }) {
-  if (!messages && !warnings) return null
+  if (!programOutput && !messages && !warnings) return null
   return (
     <div className="shrink-0 px-4 py-2 space-y-2 border-b border-slate-200 dark:border-slate-700">
+      {programOutput && <Collapsible title="Program output" content={programOutput} />}
       {messages && <Collapsible title="Messages" content={messages} />}
       {warnings && <Collapsible title="Warnings" content={warnings} />}
     </div>

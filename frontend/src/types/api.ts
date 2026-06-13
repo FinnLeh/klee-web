@@ -94,6 +94,11 @@ export interface components {
             stats: {
                 [key: string]: number;
             };
+            /**
+             * Program Output
+             * @default
+             */
+            program_output: string;
             /** Compile Error */
             compile_error?: string | null;
             halt_reason?: components["schemas"]["HaltReason"] | null;

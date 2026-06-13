@@ -81,3 +81,15 @@ def test_parse_runtime_error_halt_reason_is_completed():
 def test_parse_max_time_halt_reason_is_max_time():
     result = parse_output_dir(FIXTURES / "max_time" / "output")
     assert result.halt_reason == HaltReason.max_time
+
+
+def test_parse_program_output_defaults_to_empty_when_absent():
+    result = parse_output_dir(FIXTURES / "happy_path" / "output")
+    assert result.program_output == ""
+
+
+def test_parse_program_output_reads_captured_program_stdout():
+    result = parse_output_dir(FIXTURES / "program_output" / "output")
+    assert "hello from klee web" in result.program_output
+    assert "x is positive" in result.program_output
+    assert "x is not positive" in result.program_output
