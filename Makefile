@@ -1,4 +1,8 @@
-.PHONY: up runner
+.PHONY: up install runner
+
+install:
+	cd backend && uv sync
+	cd frontend && npm install
 
 up: runner
 	@trap 'kill 0' EXIT INT TERM; \

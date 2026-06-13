@@ -27,7 +27,19 @@ klee-web/
 
 ## Running locally
 
-Requires `uv` and `node` on the host.
+Requires [`uv`](https://docs.astral.sh/uv/) and [`node`](https://nodejs.org/)
+on the host. `uv` runs and provisions the Python backend; `node` (with its
+bundled `npm`) provides the frontend toolchain, Vite included.
+
+Install the project dependencies once after cloning:
+
+```bash
+make install
+```
+
+This runs `uv sync` for the backend and `npm install` for the frontend (the
+latter is what puts Vite in `frontend/node_modules`). Then start both dev
+servers:
 
 ```bash
 make up
