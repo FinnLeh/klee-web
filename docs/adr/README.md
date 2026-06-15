@@ -48,3 +48,4 @@ Don't write ADRs for:
 | 0010 | Frontend data layer (openapi-typescript + openapi-fetch + React Query) | Accepted |
 | 0011 | Frontend layered architecture (Types / API client / Hooks / Components) | Accepted |
 | 0012 | Add query_format to the flag schema | Accepted |
+| 0013 | Cancel as a user-triggered halt | Accepted |
