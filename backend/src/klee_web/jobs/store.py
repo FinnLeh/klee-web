@@ -15,6 +15,7 @@ class JobStore(Protocol):
     async def update_status(self, job_id: UUID, status: JobStatus) -> None: ...
     async def set_partial_result(self, job_id: UUID, result: JobResult) -> None: ...
     async def set_result(self, job_id: UUID, result: JobResult) -> None: ...
+    async def request_cancel(self, job_id: UUID) -> None: ...
 
 
 class InMemoryJobStore:
@@ -51,3 +52,10 @@ class InMemoryJobStore:
                 raise JobNotFound(job_id)
             job.result = result
             job.status = JobStatus.done
+
+    async def request_cancel(self, job_id: UUID) -> None:
+        async with self._lock:
+            job = self._jobs.get(job_id)
+            if job is None:
+                raise JobNotFound(job_id)
+            job.cancel_requested = True

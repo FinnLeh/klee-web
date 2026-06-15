@@ -71,6 +71,21 @@ async def test_set_partial_result_on_unknown_id_raises_job_not_found(store, samp
         await store.set_partial_result(uuid4(), sample_result)
 
 
+async def test_request_cancel_sets_flag(store):
+    job = Job()
+    await store.create(job)
+    assert job.cancel_requested is False
+    await store.request_cancel(job.id)
+    retrieved = await store.get(job.id)
+    assert retrieved is not None
+    assert retrieved.cancel_requested is True
+
+
+async def test_request_cancel_on_unknown_id_raises_job_not_found(store):
+    with pytest.raises(JobNotFound):
+        await store.request_cancel(uuid4())
+
+
 async def test_concurrent_creates_dont_lose_jobs(store):
     jobs = [Job() for _ in range(50)]
     await asyncio.gather(*(store.create(j) for j in jobs))

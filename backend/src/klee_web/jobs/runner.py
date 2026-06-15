@@ -4,12 +4,17 @@ from collections.abc import Awaitable, Callable
 from contextlib import suppress
 from pathlib import Path
 from typing import Protocol
+from uuid import UUID
 
 from klee_web.models import JobResult, KleeFlags
 from klee_web.parsing.klee_output import parse_output_dir
 
 IMAGE_TAG = "klee-web-runner"
 _WATCH_INTERVAL_SECONDS = 1.0
+
+
+def _container_name(job_id: UUID) -> str:
+    return f"klee-job-{job_id}"
 
 
 OnProgress = Callable[[JobResult], Awaitable[None]]
@@ -28,9 +33,11 @@ class KleeRunner(Protocol):
         self,
         source: str,
         flags: KleeFlags,
+        job_id: UUID,
         on_progress: OnProgress | None = None,
         on_parsing: OnParsing | None = None,
     ) -> JobResult: ...
+    async def cancel(self, job_id: UUID) -> bool: ...
 
 
 class FakeKleeRunner:
@@ -40,15 +47,19 @@ class FakeKleeRunner:
         self,
         canned_result: JobResult | None = None,
         raise_exc: Exception | None = None,
+        cancel_returns: bool = True,
     ) -> None:
         self._canned_result = canned_result
         self._raise_exc = raise_exc
+        self._cancel_returns = cancel_returns
         self.calls: list[tuple[str, KleeFlags]] = []
+        self.cancel_calls: list[UUID] = []
 
     async def execute(
         self,
         source: str,
         flags: KleeFlags,
+        job_id: UUID,
         on_progress: OnProgress | None = None,
         on_parsing: OnParsing | None = None,
     ) -> JobResult:
@@ -63,6 +74,10 @@ class FakeKleeRunner:
             await on_parsing()
         return self._canned_result
 
+    async def cancel(self, job_id: UUID) -> bool:
+        self.cancel_calls.append(job_id)
+        return self._cancel_returns
+
 
 class DockerKleeRunner:
     """Runs the klee-web-runner container per job and parses /work/output back into a JobResult."""
@@ -71,6 +86,7 @@ class DockerKleeRunner:
         self,
         source: str,
         flags: KleeFlags,
+        job_id: UUID,
         on_progress: OnProgress | None = None,
         on_parsing: OnParsing | None = None,
     ) -> JobResult:
@@ -84,6 +100,8 @@ class DockerKleeRunner:
                     "docker",
                     "run",
                     "--rm",
+                    "--name",
+                    _container_name(job_id),
                     "-v",
                     f"{tmpdir}:/work",
                     "-e",
@@ -123,6 +141,21 @@ class DockerKleeRunner:
             if on_parsing is not None:
                 await on_parsing()
             return await asyncio.to_thread(parse_output_dir, output_dir)
+
+    async def cancel(self, job_id: UUID) -> bool:
+        """Signal the job's container to halt. Returns True only if a live container
+        received the signal; a missing container (not started yet, or already gone)
+        means there is nothing to cancel."""
+        proc = await asyncio.create_subprocess_exec(
+            "docker",
+            "kill",
+            "--signal=TERM",
+            _container_name(job_id),
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        await proc.communicate()
+        return proc.returncode == 0
 
 
 async def _watch_output_dir(output_dir: Path, on_progress: OnProgress) -> None:

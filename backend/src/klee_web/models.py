@@ -17,6 +17,7 @@ class JobStatus(StrEnum):
 class HaltReason(StrEnum):
     completed = "completed"
     max_time = "max_time"
+    cancelled = "cancelled"
 
 
 class QueryFormat(StrEnum):
@@ -58,6 +59,7 @@ class Job(BaseModel):
     status: JobStatus = JobStatus.pending
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     result: JobResult | None = None
+    cancel_requested: bool = Field(default=False, exclude=True)
 
 
 class JobCreated(BaseModel):

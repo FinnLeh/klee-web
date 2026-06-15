@@ -1,6 +1,7 @@
 import asyncio
 import shutil
 import subprocess
+from uuid import uuid4
 
 import pytest
 
@@ -70,7 +71,7 @@ int main() {
 async def test_docker_runner_runs_get_sign_end_to_end():
     runner = DockerKleeRunner()
     result = await asyncio.wait_for(
-        runner.execute(GET_SIGN_SOURCE, KleeFlags(max_time=10, max_memory=256)),
+        runner.execute(GET_SIGN_SOURCE, KleeFlags(max_time=10, max_memory=256), uuid4()),
         timeout=30,
     )
     assert len(result.test_cases) == 3
@@ -87,7 +88,7 @@ async def test_docker_runner_runs_get_sign_end_to_end():
 async def test_docker_runner_surfaces_compile_error_from_missing_include():
     runner = DockerKleeRunner()
     result = await asyncio.wait_for(
-        runner.execute(SOURCE_MISSING_INCLUDE, KleeFlags(max_time=10, max_memory=256)),
+        runner.execute(SOURCE_MISSING_INCLUDE, KleeFlags(max_time=10, max_memory=256), uuid4()),
         timeout=30,
     )
     assert result.compile_error is not None
@@ -96,10 +97,72 @@ async def test_docker_runner_surfaces_compile_error_from_missing_include():
     assert result.stats == {}
 
 
+MANY_PATHS_SOURCE = """\
+#include <klee/klee.h>
+
+int main() {
+    int a;
+    klee_make_symbolic(&a, sizeof(a), "a");
+    int sum = 0;
+    for (int i = 0; i < 20; i++) {
+        if ((a >> i) & 1) sum += i;
+        else sum -= i;
+    }
+    if (sum == 12345) return 1;
+    return 0;
+}
+"""
+
+
+async def _container_running(name: str) -> bool:
+    proc = await asyncio.create_subprocess_exec(
+        "docker",
+        "ps",
+        "--filter",
+        f"name={name}",
+        "--format",
+        "{{.Names}}",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.DEVNULL,
+    )
+    out, _ = await proc.communicate()
+    return name in out.decode()
+
+
+async def test_docker_runner_cancel_halts_with_partial_results():
+    runner = DockerKleeRunner()
+    job_id = uuid4()
+    name = f"klee-job-{job_id}"
+    task = asyncio.create_task(
+        runner.execute(MANY_PATHS_SOURCE, KleeFlags(max_time=60, max_memory=256), job_id)
+    )
+    try:
+        for _ in range(50):
+            if await _container_running(name):
+                break
+            await asyncio.sleep(0.3)
+        else:
+            pytest.fail("container never started")
+
+        await asyncio.sleep(2)  # let KLEE explore so the halt has states to dump
+
+        assert await runner.cancel(job_id) is True
+        # If the entrypoint did not forward the halt, this would run until max_time
+        # and the wait_for would expire instead.
+        result = await asyncio.wait_for(task, timeout=30)
+    finally:
+        if not task.done():
+            task.cancel()
+        subprocess.run(["docker", "rm", "-f", name], capture_output=True)
+
+    assert len(result.test_cases) >= 1
+    assert not await _container_running(name)
+
+
 async def test_docker_runner_pairs_div_err_with_failing_test_case():
     runner = DockerKleeRunner()
     result = await asyncio.wait_for(
-        runner.execute(DIV_BY_ZERO_SOURCE, KleeFlags(max_time=10, max_memory=256)),
+        runner.execute(DIV_BY_ZERO_SOURCE, KleeFlags(max_time=10, max_memory=256), uuid4()),
         timeout=30,
     )
     assert len(result.test_cases) == 2

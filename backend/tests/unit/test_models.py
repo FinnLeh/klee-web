@@ -3,7 +3,15 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import ValidationError
 
-from klee_web.models import Job, JobRequest, JobResult, JobStatus, KleeFlags, TestCase
+from klee_web.models import (
+    HaltReason,
+    Job,
+    JobRequest,
+    JobResult,
+    JobStatus,
+    KleeFlags,
+    TestCase,
+)
 
 
 def test_klee_flags_defaults():
@@ -75,6 +83,23 @@ def test_job_status_serialises_as_plain_string():
     job = Job(status=JobStatus.running)
     dumped = job.model_dump(mode="json")
     assert dumped["status"] == "running"
+
+
+def test_job_cancel_requested_defaults_false():
+    assert Job().cancel_requested is False
+
+
+def test_job_cancel_requested_is_excluded_from_serialisation():
+    job = Job()
+    job.cancel_requested = True
+    assert "cancel_requested" not in job.model_dump(mode="json")
+
+
+def test_halt_reason_cancelled_serialises_as_plain_string():
+    result = JobResult(
+        test_cases=[], messages="", warnings="", stats={}, halt_reason=HaltReason.cancelled
+    )
+    assert result.model_dump(mode="json")["halt_reason"] == "cancelled"
 
 
 def test_job_result_compile_error_defaults_to_none():

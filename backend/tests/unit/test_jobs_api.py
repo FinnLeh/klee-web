@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 
 from klee_web.deps import get_runner
 from klee_web.jobs.runner import FakeKleeRunner, KleeRunnerError
-from klee_web.models import JobResult, JobStatus, TestCase
+from klee_web.models import HaltReason, JobResult, JobStatus, TestCase
 
 
 async def test_post_jobs_returns_202_with_job_id(client):
@@ -101,7 +101,7 @@ async def test_post_runs_in_background_and_streams_partial_results(
     )
 
     class BlockingStreamingRunner:
-        async def execute(self, source, flags, on_progress=None, on_parsing=None):
+        async def execute(self, source, flags, job_id, on_progress=None, on_parsing=None):
             if on_progress is not None:
                 await on_progress(partial)
             partial_emitted.set()
@@ -143,7 +143,7 @@ async def test_post_flips_to_parsing_between_klee_exit_and_result(
     finish_when = asyncio.Event()
 
     class ParsingRunner:
-        async def execute(self, source, flags, on_progress=None, on_parsing=None):
+        async def execute(self, source, flags, job_id, on_progress=None, on_parsing=None):
             if on_parsing is not None:
                 await on_parsing()
             parsing_signaled.set()
@@ -165,3 +165,89 @@ async def test_post_flips_to_parsing_between_klee_exit_and_result(
     job = await store.get(job_id)
     assert job is not None
     assert job.status == JobStatus.done
+
+
+class CancellableRunner:
+    """Blocks execute on a finish event so a cancel can land mid-run. cancel records
+    its calls and returns a settable bool, decoupling 'cancel landed' from 'execute
+    returned' the way a real container does (signal now, exit later after flush)."""
+
+    def __init__(self, result: JobResult, cancel_returns: bool = True) -> None:
+        self._result = result
+        self._cancel_returns = cancel_returns
+        self.running = asyncio.Event()
+        self.finish = asyncio.Event()
+        self.cancel_calls: list[UUID] = []
+
+    async def execute(self, source, flags, job_id, on_progress=None, on_parsing=None):
+        self.running.set()
+        await self.finish.wait()
+        return self._result
+
+    async def cancel(self, job_id):
+        self.cancel_calls.append(job_id)
+        return self._cancel_returns
+
+
+async def test_cancel_unknown_job_returns_404(client):
+    response = await client.post(f"/jobs/{uuid4()}/cancel")
+    assert response.status_code == 404
+
+
+async def test_cancel_running_job_returns_202_and_tags_result_cancelled(
+    client,
+    app,
+    store,
+    sample_result,
+    wait_for_jobs,
+):
+    runner = CancellableRunner(sample_result, cancel_returns=True)
+    app.dependency_overrides[get_runner] = lambda: runner
+
+    post = await client.post("/jobs", json={"source": "int main(){}"})
+    job_id = UUID(post.json()["job_id"])
+    await runner.running.wait()
+
+    cancel = await client.post(f"/jobs/{job_id}/cancel")
+    assert cancel.status_code == 202
+    assert runner.cancel_calls == [job_id]
+    job = await store.get(job_id)
+    assert job is not None
+    assert job.cancel_requested is True
+
+    runner.finish.set()
+    await wait_for_jobs()
+    job = await store.get(job_id)
+    assert job is not None
+    assert job.status == JobStatus.done
+    assert job.result is not None
+    assert job.result.halt_reason == HaltReason.cancelled
+
+
+async def test_cancel_returns_409_and_does_not_tag_when_no_live_container(
+    client,
+    app,
+    store,
+    sample_result,
+    wait_for_jobs,
+):
+    runner = CancellableRunner(sample_result, cancel_returns=False)
+    app.dependency_overrides[get_runner] = lambda: runner
+
+    post = await client.post("/jobs", json={"source": "int main(){}"})
+    job_id = UUID(post.json()["job_id"])
+    await runner.running.wait()
+
+    cancel = await client.post(f"/jobs/{job_id}/cancel")
+    assert cancel.status_code == 409
+    job = await store.get(job_id)
+    assert job is not None
+    assert job.cancel_requested is False
+
+    runner.finish.set()
+    await wait_for_jobs()
+    job = await store.get(job_id)
+    assert job is not None
+    assert job.status == JobStatus.done
+    assert job.result is not None
+    assert job.result.halt_reason != HaltReason.cancelled

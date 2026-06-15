@@ -12,9 +12,15 @@ own diagnostics) is left to flow to the container so the backend still sees it.
 
 When KLEE_QUERY_FORMAT=kquery, pass --write-kqueries so KLEE emits a .kquery
 (path constraint) file per test case.
+
+A SIGTERM to this process (how the backend cancels a job) is translated into a
+SIGINT to KLEE, the signal KLEE halts gracefully on: KLEE stops exploring and
+dumps the test cases found so far, the same partial result a --max-time expiry
+produces.
 """
 import os
 import shutil
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -23,6 +29,7 @@ INPUT = Path("/work/input.c")
 BITCODE = Path("/work/code.bc")
 OUTPUT_DIR = Path("/work/output")
 KLEE_INCLUDE = "/home/klee/klee_src/include"
+GRACE_SECONDS = 10  # after forwarding the halt, SIGKILL KLEE if it has not flushed and exited
 
 
 def main() -> int:
@@ -64,10 +71,27 @@ def main() -> int:
         klee_cmd.append("--write-kqueries")
     klee_cmd.append(str(BITCODE))
 
-    klee_proc = subprocess.run(klee_cmd, stdout=subprocess.PIPE, text=True)
+    proc = subprocess.Popen(klee_cmd, stdout=subprocess.PIPE, text=True)
+    halted = False
+
+    def _force_kill(signum, frame):
+        proc.kill()
+
+    def _forward_halt(signum, frame):
+        nonlocal halted
+        halted = True
+        proc.send_signal(signal.SIGINT)
+        signal.signal(signal.SIGALRM, _force_kill)
+        signal.alarm(GRACE_SECONDS)
+
+    signal.signal(signal.SIGTERM, _forward_halt)
+    signal.signal(signal.SIGINT, _forward_halt)
+
+    stdout, _ = proc.communicate()
+    signal.alarm(0)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    (OUTPUT_DIR / "program_output.txt").write_text(klee_proc.stdout or "")
-    return klee_proc.returncode
+    (OUTPUT_DIR / "program_output.txt").write_text(stdout or "")
+    return 0 if halted else proc.returncode
 
 
 if __name__ == "__main__":
