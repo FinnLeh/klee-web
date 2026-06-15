@@ -5,6 +5,8 @@ import { Results } from "../components/Results"
 import { StatusBar } from "../components/StatusBar"
 import { TopBar } from "../components/TopBar"
 import { Workspace } from "../components/Workspace"
+import { useCancelJob } from "../hooks/useCancelJob"
+import { useJob } from "../hooks/useJob"
 import { useSubmitJob } from "../hooks/useSubmitJob"
 
 const GET_SIGN_C = `#include <klee/klee.h>
@@ -31,13 +33,29 @@ export function HomePage() {
   })
   const [jobId, setJobId] = useState<string | null>(null)
   const [errorsFirst, setErrorsFirst] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const submitMutation = useSubmitJob()
+  const cancelMutation = useCancelJob()
+  const job = useJob(jobId)
+
+  const status = job.data?.status ?? null
+  const jobActive = status === "pending" || status === "running" || status === "parsing"
 
   const handleRun = () => {
+    setCancelling(false)
     submitMutation.mutate(
       { source, flags },
       { onSuccess: (data) => setJobId(data.job_id) },
     )
+  }
+
+  const handleCancel = () => {
+    if (!jobId) return
+    cancelMutation.mutate(jobId, {
+      onSuccess: (landed) => {
+        if (landed) setCancelling(true)
+      },
+    })
   }
 
   return (
@@ -47,6 +65,9 @@ export function HomePage() {
           flags={flags}
           onFlagsChange={setFlags}
           onRun={handleRun}
+          jobActive={jobActive}
+          cancelling={cancelling}
+          onCancel={handleCancel}
         />
       }
       main={<Editor value={source} onChange={setSource} />}

@@ -7,9 +7,19 @@ type TopBarProps = {
   flags: KleeFlags
   onFlagsChange: (next: KleeFlags) => void
   onRun: () => void
+  jobActive: boolean
+  cancelling: boolean
+  onCancel: () => void
 }
 
-export function TopBar({ flags, onFlagsChange, onRun }: TopBarProps) {
+export function TopBar({
+  flags,
+  onFlagsChange,
+  onRun,
+  jobActive,
+  cancelling,
+  onCancel,
+}: TopBarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const settingsRef = useRef<HTMLDivElement>(null)
 
@@ -38,14 +48,26 @@ export function TopBar({ flags, onFlagsChange, onRun }: TopBarProps) {
         <FlagBar flags={flags} onFlagsChange={onFlagsChange} />
       </div>
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onRun}
-          className="flex items-center gap-1.5 px-4 py-1.5 rounded text-sm font-medium text-white bg-[var(--klee-accent)] hover:brightness-110 active:brightness-95"
-        >
-          <PlayIcon />
-          Run
-        </button>
+        {jobActive ? (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={cancelling}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded text-sm font-medium text-white bg-rose-600 hover:brightness-110 active:brightness-95 disabled:opacity-60 disabled:cursor-default"
+          >
+            <StopIcon />
+            {cancelling ? "Cancelling..." : "Cancel"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onRun}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded text-sm font-medium text-white bg-[var(--klee-accent)] hover:brightness-110 active:brightness-95"
+          >
+            <PlayIcon />
+            Run
+          </button>
+        )}
         <div ref={settingsRef} className="relative">
           <button
             type="button"
@@ -88,6 +110,14 @@ function PlayIcon() {
   return (
     <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
       <path d="M2 1 L9 5 L2 9 Z" />
+    </svg>
+  )
+}
+
+function StopIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+      <rect x="1.5" y="1.5" width="7" height="7" rx="1" />
     </svg>
   )
 }

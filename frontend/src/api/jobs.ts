@@ -27,3 +27,13 @@ export async function getJob(jobId: string): Promise<Job> {
   }
   return data;
 }
+
+// Returns true only when the cancel landed (202). A 409 means there was no live
+// container to signal (still starting, or already finished): a no-op the caller
+// clicks through, not an error.
+export async function cancelJob(jobId: string): Promise<boolean> {
+  const { response } = await apiClient.POST("/jobs/{job_id}/cancel", {
+    params: { path: { job_id: jobId } },
+  });
+  return response.status === 202;
+}

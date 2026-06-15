@@ -360,14 +360,23 @@ function PaginationControls({
   )
 }
 
+const HALT_BADGES: Record<HaltReason, { label: string; color: string }> = {
+  completed: {
+    label: "Explored all paths.",
+    color: "bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400",
+  },
+  max_time: {
+    label: "Stopped at max time. Some paths may be unexplored.",
+    color: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300",
+  },
+  cancelled: {
+    label: "Cancelled by user. Some paths may be unexplored.",
+    color: "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300",
+  },
+}
+
 function HaltBadge({ reason }: { reason: HaltReason }) {
-  const isTimeout = reason === "max_time"
-  const label = isTimeout
-    ? "Stopped at max time. Some paths may be unexplored."
-    : "Explored all paths."
-  const color = isTimeout
-    ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300"
-    : "bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400"
+  const { label, color } = HALT_BADGES[reason]
   return (
     <div className={`px-4 py-1.5 text-xs border-b border-slate-200 dark:border-slate-700 ${color}`}>
       {label}
